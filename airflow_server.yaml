@@ -60,7 +60,7 @@ Resources:
     Properties:
       KeyName: !Ref 'KeyName'
       SecurityGroups: [!Ref 'AirflowEC2SecurityGroup']
-      InstanceType: 'm4.xlarge'
+      InstanceType: 'm4.2xlarge'
       IamInstanceProfile:
         Ref: EC2InstanceProfile
       Tags:
@@ -90,8 +90,14 @@ Resources:
          # Install git
          sudo yum install -y git
          # Clone the git repository
-         git clone https://github.com/aws-samples/aws-concurrent-data-orchestration-pipeline-emr-livy.git
+         git clone https://github.com/harisyammnv/DEND_Capstone_Airflow_EMR.git
+         python3 -m venv dend/env
+         source ~/dend/env/bin/activate
+         pip install pip --upgrade
          sudo pip install boto3
+         sudo pip install s3fs
+         sudo pip install beautifulsoup4
+         sudo pip install pandas
          # Install airflow using pip
          echo "Install Apache Airflow"
          sudo SLUGIFY_USES_TEXT_UNIDECODE=yes pip install -U apache-airflow
@@ -105,6 +111,7 @@ Resources:
          sudo pip install --upgrade MarkupSafe
          echo 'export PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
          source /root/.bash_profile
+         echo "source ${HOME}/dend/env/bin/activate" >> ${HOME}/.bashrc
          # Initialize Airflow
          airflow initdb
          # Update the RDS connection in the Airflow Config file
