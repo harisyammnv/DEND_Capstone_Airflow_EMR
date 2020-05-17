@@ -8,12 +8,14 @@ import re
 import pandas as pd
 from plugins.helpers import aws_connections
 from dags.lib.emr_cluster_provider import *
+from dags.lib.emr_session_provider import *
 # airflow
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
+from airflow import AirflowException
 
 config = configparser.ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -98,7 +100,6 @@ dag = DAG('Udacity_Capstone',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
           schedule_interval=None,
-          max_active_runs=1
         )
 
 start_operator = DummyOperator(task_id='Begin_ETL',  dag=dag)
@@ -127,6 +128,22 @@ def terminate_emr_cluster(**kwargs):
     cluster_id = ti.xcom_pull(task_ids='create_emr_cluster')
     emr_cp.terminate_cluster(cluster_id=cluster_id)
     Variable.set("cluster_id", "na")
+
+
+def submit_transform(**kwargs):
+    cluster_id = Variable.get("cluster_id")
+    cluster_dns = emr_cp.get_cluster_dns(cluster_id)
+    headers = emr.create_spark_session(cluster_dns, 'pyspark')
+    session_url = emr.wait_for_idle_session(cluster_dns, headers)
+    statement_response = emr.submit_statement(session_url, kwargs['params']['file'])
+    logs = emr.track_statement_progress(cluster_dns, statement_response.headers)
+    emr.kill_spark_session(session_url)
+    if kwargs['params']['log']:
+        for line in logs:
+            logging.info(line)
+            if 'FAIL' in str(line):
+                logging.info(line)
+                raise AirflowException("Normalize data Quality check Fail!")
 
 
 create_cluster = PythonOperator(
