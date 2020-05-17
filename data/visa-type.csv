@@ -1,0 +1,193 @@
+visa-type,description
+CW1,CNMI-only transitional workers
+CW2,Spouses and children of CW1
+H1B,Temporary workers in specialty occupations
+H1B1,Chile and Singapore Free Trade Agreement aliens
+H1C,Registered nurses participating in the Nursing Relief for Disadvantaged Areas
+H2A,Agricultural workers
+H2B,Nonagricultural workers
+H2R,Returning H2B workers
+H3,Trainees
+H4,"Spouses and children of H1, H2, or H3"
+O1,Workers with extraordinary ability or achievement
+O2,Workers accompanying and assisting in performance of O1 workers
+O3,Spouses and children of O1 and O2
+P1,Internationally recognized athletes or entertainers
+P2,Artists or entertainers in reciprocal exchange programs
+P3,Artists or entertainers in culturally unique programs
+P4,"Spouses and children of P1, P2, or P3"
+Q1,Workers in international cultural exchange programs
+R1,Workers in religious occupations
+R2,Spouses and children of R1
+TN,North American Free Trade Agreement (NAFTA) professional workers
+TD,Spouses and children of TN
+L1,Intracompany transferees
+L2,Spouses and children of L1
+E1,Treaty traders and their spouses and children
+E2,Treaty investors and their spouses and children
+E2C,Treaty investors and their spouses and children (CNMI only)
+E3,"Australian Free Trade Agreement principals, spouses and children"
+E3D,Spouse or Child of E3
+E3R,Returning E3
+I1,Representatives of foreign information media and spouses and children
+F1,Academic students
+F2,Spouses and children of F1
+M1,Vocational students
+M2,Spouses and children of M1
+J1,Exchange visitors
+J2,Spouses and children of J1
+A1,"Ambassadors, public ministers, career diplomatic or consular officers and their families"
+A2,Other foreign government officials or employees and their families
+A3,"Attendants, servants, or personal employees of A1 and A2 and their families"
+G1,Principals of recognized foreign governments
+G2,Other representatives of recognized foreign governments
+G3,Representatives of nonrecognized or nonmember foreign governments
+G4,International organization officers or employees
+G5,"Attendants, servants, or personal employees of representatives"
+N8,Parent of an Alien Classified SK3 or SN3
+N9,"Child of N8 or of SK1, SK2, SK4, SN1, SN2 or SN4"
+B2,Temporary visitors for pleasure
+WT,Visa Waiver Program – temporary visitors for pleasure
+GT,Guam Visa Waiver Program – temporary visitors for pleasure to Guam
+GMT,Guam - Commonwealth of Northern Mariana Islands (CNMI) Visa Waiver Program - temporary visitors for pleasure to Guam or Northern Mariana Islands
+B1,Temporary visitors for business
+WB,Visa Waiver Program – temporary visitors for business
+GB,Guam Visa Waiver Program – temporary visitors for business to Guam
+GMB,Guam - Commonwealth of Northern Mariana Islands (CNMI) Visa Waiver Program - temporary visitors for business to Guam or Northern Mariana Islands
+C1,Aliens in continuous and immediate transit through the United States
+C2,Aliens in transit to the United Nations
+C3,"Foreign government officials, their spouses, children, and attendants in transit"
+F3,Canadian or Mexican national academic commuter students
+M3,Canadian or Mexican national vocational commuter students
+K1,Fiancé(e)s of U.S. citizens
+K2,Children of K1
+K3,"Spouses of U.S. citizens, visa pending"
+K4,"Children of U.S. citizens, visa pending"
+V1,"Spouses of permanent residents, visa pending"
+V2,"Children of permanent residents, visa pending"
+V3,"Dependents of V1 or V2, visa pending"
+C1,Combined transit and crewmember visa
+D,Crewmember (sea or air)
+T1,Victim of a severe form of trafficking in persons
+T2,Spouse of T1
+T3,Child of T1
+T4,Parent of T1
+T5,Unmarried sibling under age 18 of T1
+T6,Adult or minor child of a derivative beneficiary of a T1
+U1,Victim of criminal activity
+U2,Spouse or U1
+U3,Child of U1
+U4,Parent of U1 under 21 years of age
+U5,Unmarried Sibling under age 18 of U1 under 21 years of age
+S5,Certain Aliens Supplying Critical Information Relating to a Criminal Organization or Enterprise
+S6,Certain Aliens Supplying Critical Information Relating to Terrorism
+S7,Qualified Family Member of S5 or S6
+IR1,Spouse of U.S. citizen
+IR2,Child of U.S. citizen
+IR3,"Orphan from a non-Hague country (i.e., not a party to the Hague Adoption Convention) adopted abroad by U.S. citizen"
+IR4,Orphan from a non-Hague country to be adopted in the United States by U.S. citizen
+IR5,Parent of U.S. citizen at least 21 years of age
+IH3,Orphan from a Hague country adopted abroad by U.S. citizen
+IH4,Orphan from a Hague country to be adopted in the United States by U.S. citizen
+CR1,Spouse of U.S. citizen (conditional status)
+CR2,Child of U.S. citizen (conditional status)
+IW1,Certain spouses of deceased U.S. citizens
+IW2,Child of IW-1 IB-1
+IB1,Self-petition spouse of U.S. citizen
+IB2,Self-petition child of U.S. citizen
+IB3,Child of IB-1
+VI5,Parent of U.S. citizen who acquired permanent resident status under the Virgin Islands Nonimmigrant Alien Adjustment Act
+AM1,Vietnam Amerasian principal
+AM2,Spouse/Child of AM-1
+AM3,"Natural mother of AM-1 (and spouse or child of such mother), or person who has acted in effect as the mother, father, or next-of-kin of AM-1 (and spouse or child of such person)"
+SB1,Returning resident
+SC1,Certain persons who lost U.S. citizenship by marriage
+SC2,Certain persons who lost U.S. citizenship by serving in foreign armed forces
+F11,Unmarried son or daughter of U.S. citizen
+F12,Child of F11
+B11,Self-petition unmarried son or daughter of U.S. citizen
+B12,Child of B11
+F21,Spouse of permanent resident
+F22,Child of permanent resident
+F23,Child of F21 or F22
+F24,Unmarried son/daughter of permanent resident
+F25,Child of F24
+B21,Self-petition spouse of permanent resident
+B22,Self-petition child of permanent resident
+B23,Child of B21 or B22
+B24,Self-petition unmarried son/daughter of permanent resident
+B25,Child of B24
+FX1,Spouse of permanent resident
+FX2,Child of permanent resident
+FX3,Child of FX1 or FX2
+BX1,Self-petition spouse of permanent resident
+BX2,Self-petition child of permanent resident
+BX3,Child of BX1 or BX2
+F31,Married son or daughter of U.S. citizen
+F32,Spouse of F31
+F33,Child of F31
+B31,Self-petition married son or daughter of U.S. citizen B32
+B32,Spouse of B31
+B33,Child of B31
+F41,Brother or sister of U.S. citizen who is at least 21 years of age
+F42,Spouse of F41
+F43,Child of F41
+E11,"Person with extraordinary ability in the sciences, arts, education, business, or athletics"
+E12,Outstanding professor or researcher
+E13,Multinational executive or manager
+E14,"Spouse of E11, E12, or E13"
+E15,"Child of E11, E12, or E13"
+E21,"Professional holding advanced degree or person of exceptional ability in the sciences, arts, or business"
+E22,Spouse of E21
+E23,Child of E21
+E31,Skilled worker
+E32,Professional holding baccalaureate degree
+E34,Spouse of E31 or E32
+E35,Child of E31 or E32
+EW3,Other workers(subgroup numerical limit)
+EW4,Spouse of EW3
+EW5,Child of EW3
+BC1,Certain international broadcasters
+BC2,Spouse of BC-1
+BC3,Child of BC-1
+SD1,Minister of religion
+SD2,Spouse of SD-1
+SD3,Child of SD-1
+SE1,Certain employees or former employees of the U.S. Government abroad
+SE2,Spouse of SE-1
+SE3,Child of SE-1
+SF1,Certain former employees of the Panama Canal Company or Canal Zone Government
+SF2,Spouse or child of SF-1
+SG1,Certain former employees of the U.S. Government in the Panama Canal Zone SG-2
+SH2,Spouse or child of SH-1
+SJ2,Spouse or child of SJ-1 (certain foreign medical graduates)
+SK1,Certain retired international organization employees
+SK2,Spouse of SK-1 SK-3
+SK4,Certain surviving spouses of deceased international organization employees SL-1
+SM1,"Person recruited outside the United States who has served, or is enlisted to serve, in the U.S. Armed Forces for 12 years (became eligible after October 1, 1991)"
+SM2,Spouse of SM-1
+SM3,Child of SM-1
+SM4,"Person recruited outside the United States who has served, or is enlisted to serve, in the U.S. Armed Forces for 12 years (eligible as of October 1, 1991)"
+SM5,Spouse or child of SM-4
+SN1,Certain retired NATO-6 civilian employees
+SN2,Spouse of SN-1
+SN3,Certain unmarried sons or daughters of NATO-6 civilian employees
+SN4,Certain surviving spouses of deceased NATO-6 civilian employees
+SR1,Certain religious workers (subgroup numerical limit)
+SR2,Spouse of SR-1
+SR3,Child of SR-1
+C51,Employment creation outside targeted area
+C52,Spouse of C51
+C53,Child of C51
+T51,Employment creation in targeted rural/high unemployment area (subgroup numerical set-aside)
+T52,Spouse of T51
+T53,Child of T51
+R51,"Investor pilot program, not in targeted area"
+R52,Spouse of R51
+R53,Child of R51
+I51,"Investor pilot program, in targeted area"
+I52,Spouse of I51
+I53,Child of I51
+DV1,Diversity immigrant
+DV2,Spouse of DV-1
+DV3,Child of DV-1
