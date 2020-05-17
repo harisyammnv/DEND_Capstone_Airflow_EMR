@@ -82,17 +82,18 @@ Resources:
          # Start cfn-init
          /opt/aws/bin/cfn-init -v -c install --stack ${AWS::StackId} --resource EC2Instance --region ${AWS::Region}
          # Download and unzip the Movielens dataset
-         wget http://files.grouplens.org/datasets/movielens/ml-latest.zip && unzip ml-latest.zip
+         # wget http://files.grouplens.org/datasets/movielens/ml-latest.zip && unzip ml-latest.zip
          # Upload the movielens dataset files to the S3 bucket
-         aws s3 cp ml-latest s3://${S3BucketName} --recursive
+         # aws s3 cp ml-latest s3://${S3BucketName} --recursive
          # install python3
          sudo yum install python3 -y
+         sudo rm /usr/bin/python
+         sudo ln -s /etc/alternatives/python3 /usr/bin/python
          # Install git
          sudo yum install -y git
          # Clone the git repository
          git clone https://github.com/harisyammnv/DEND_Capstone_Airflow_EMR.git
          python3 -m venv dend/env
-         source ~/dend/env/bin/activate
          pip install pip --upgrade
          sudo pip install boto3
          sudo pip install s3fs
@@ -111,7 +112,6 @@ Resources:
          sudo pip install --upgrade MarkupSafe
          echo 'export PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
          source /root/.bash_profile
-         echo "source ${HOME}/dend/env/bin/activate" >> ${HOME}/.bashrc
          # Initialize Airflow
          airflow initdb
          # Update the RDS connection in the Airflow Config file

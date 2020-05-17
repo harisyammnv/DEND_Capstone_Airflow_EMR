@@ -24,19 +24,26 @@ def table_to_array(table):
     return rows
 
 
-URL = 'https://fam.state.gov/fam/09FAM/09FAM010205.html'
-page = requests.get(URL)
+scrape = False
+process = True
+if scrape:
+    URL = 'https://fam.state.gov/fam/09FAM/09FAM010205.html'
+    page = requests.get(URL)
 
-soup = BeautifulSoup(page.content, 'html.parser')
-htmltables = soup.find_all("table")
+    soup = BeautifulSoup(page.content, 'html.parser')
+    htmltables = soup.find_all("table")
 
-table_names = ['visa-issuing-ports.csv','nationality-codes.csv','port-of-entry-codes.csv']
-for tbl,name in zip(htmltables, table_names):
-    list_table = table_to_array(tbl)
-    df = pd.DataFrame(list_table[1:])
-    processed = pd.concat([df[df.columns[:2]],df[df.columns[2:]].rename(columns={2:0,3:1})])
-    processed.columns=[list_table[0][0],list_table[0][1]]
-    processed.dropna(inplace=True)
-    processed = processed.loc[(processed[list_table[0][0]] != '') & (processed[list_table[0][1]] != '')]
-    processed.reset_index(inplace=True, drop=True)
-    processed.to_csv('C:/Users/harisyam/Desktop/data-engineering-nanodegree/6-Capstone_Project/data/'+name, index=False)
+    table_names = ['visa-issuing-ports.csv','nationality-codes.csv','port-of-entry-codes.csv']
+    for tbl,name in zip(htmltables, table_names):
+        list_table = table_to_array(tbl)
+        df = pd.DataFrame(list_table[1:])
+        processed = pd.concat([df[df.columns[:2]],df[df.columns[2:]].rename(columns={2:0,3:1})])
+        processed.columns=[list_table[0][0],list_table[0][1]]
+        processed.dropna(inplace=True)
+        processed = processed.loc[(processed[list_table[0][0]] != '') & (processed[list_table[0][1]] != '')]
+        processed.reset_index(inplace=True, drop=True)
+        processed.to_csv('C:/Users/harisyam/Desktop/data-engineering-nanodegree/6-Capstone_Project/data/'+name, index=False)
+if process:
+    df = pd.read_csv('data/visa-type.csv',sep='\t',header=None)
+    df.columns=['visa-type','description']
+    df.to_csv('data/visa-type.csv', index=False)

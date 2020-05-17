@@ -19,10 +19,24 @@ SAS_LABELS_DATA_LOC = config.get('S3','SAS_LABELS_DATA')
 I94_RAW_DATA_LOC = config.get('S3','I94_RAW_DATA')
 DEMOGRAPHICS_DATA_LOC = config.get('S3','DEMOGRAPHICS_DATA')
 
-create_stack = False
+create_stack = True
 upload_files = False
 
+if create_stack:
+    aws_stack_provider = AWSCloudFormationStackProvider(aws_key=AWS_ACCESS_KEY, aws_secret=AWS_SECRET,
+                                                        key_pair=AWS_EC2_KEY_PAIR, region=AWS_REGION,
+                                                        template_url=TEMPLATE_URL, final_bucket=FINAL_DATA_BUCKET)
+    cf_client = aws_stack_provider.get_cloud_formation_client()
+    aws_s3_client = aws_stack_provider.get_s3_client()
+    valid_stack_template = aws_stack_provider.get_stack_template()
+    if valid_stack_template:
+        aws_stack_provider.create_stack(stack_name='DEND-Stack')
+
+    #if aws_stack_provider.stack_exists(stack_name='DEND-Stack'):
+    #    print('Cloud Formation Stack Exists')
+
 if upload_files:
+    print('Uploading Raw Data files to S3')
     s3_client = boto3.client('s3', region_name=AWS_REGION,
                              aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET)
 
@@ -45,16 +59,4 @@ if upload_files:
                           VISA_DATA_LOC + "visa-type.csv")
     s3_client.upload_file("data/I94_SAS_Labels_Descriptions.SAS", RAW_DATA_BUCKET,
                           SAS_LABELS_DATA_LOC + "I94_SAS_Labels_Descriptions.SAS")
-
-if create_stack:
-    aws_stack_provider = AWSCloudFormationStackProvider(aws_key=AWS_ACCESS_KEY, aws_secret=AWS_SECRET,
-                                                        key_pair=AWS_EC2_KEY_PAIR, region=AWS_REGION,
-                                                        template_url=TEMPLATE_URL, final_bucket=FINAL_DATA_BUCKET)
-    cf_client = aws_stack_provider.get_cloud_formation_client()
-    aws_s3_client = aws_stack_provider.get_s3_client()
-    valid_stack_template = aws_stack_provider.get_stack_template()
-    if valid_stack_template:
-        aws_stack_provider.create_stack(stack_name='DEND-Stack')
-
-    if aws_stack_provider.stack_exists(stack_name='DEND-Stack'):
-        print('Cloud Formation Stack Exists')
+    print('Upload Finished')
