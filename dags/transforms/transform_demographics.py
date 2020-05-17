@@ -11,8 +11,8 @@ udf_parse_state = udf(lambda x: parse_state(x), StringType())
 
 
 demographics = spark.read.format('csv').load('s3://dend-capstone-data/raw/demographics/us-cities-demographics.csv', header=True, inferSchema=True, sep=';')\
-                .select("State Code", "City")\
-                .withColumnRenamed("State Code", "state_code")\
+                .select("State", "City")\
+                .withColumnRenamed("State", "state")\
                 .withColumnRenamed("City", "city")
 
 

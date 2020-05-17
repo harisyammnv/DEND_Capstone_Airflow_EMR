@@ -13,8 +13,8 @@ def parse_longitude(x):
     return float(y[1])
 
 
-def parse_state(x):
-    return x.strip().split(', ')[-1]
+def port_of_entry(x):
+    return x.strip().split(', ')[0]
 
 
 def parse_state_code(x):
@@ -25,7 +25,7 @@ def parse_country_code(x):
     return x.strip().split('-')[0]
 
 
-udf_parse_state = udf(lambda x: parse_state(x), StringType())
+udf_parse_port_of_entry = udf(lambda x: port_of_entry(x), StringType())
 udf_parse_latitude = udf(lambda x: parse_latitude(x), FloatType())
 udf_parse_longitude = udf(lambda x: parse_longitude(x), FloatType())
 udf_parse_state_code = udf(lambda x: parse_state_code(x), StringType())
@@ -37,11 +37,11 @@ nations_df.write.mode("overwrite").parquet("s3://dend-capstone-data/lake/codes/c
 
 #
 ports = spark.read.format('csv').load('s3://dend-capstone-data/raw/codes/port-of-entry-codes.csv', header=True, inferSchema=True)\
-    .withColumn("state_or_country", udf_parse_state("Location"))
+    .withColumn("port_of_entry", udf_parse_port_of_entry("Location"))
 
 ports.write.mode("overwrite").parquet("s3://de-capstone/lake/codes/port-of-entry-codes/")
 
-us_airport = spark.read.format('csv').load('s3://dend-capstone-data/raw/codes/airport_code.csv', header=True, inferSchema=True)\
+us_airport = spark.read.format('csv').load('s3://dend-capstone-data/raw/codes/airport-codes.csv', header=True, inferSchema=True)\
                         .withColumn("airport_latitude", udf_parse_latitude("coordinates"))\
                         .withColumn("airport_longitude", udf_parse_longitude("coordinates"))\
                         .withColumn("country", udf_parse_country_code("iso_region"))\
@@ -49,4 +49,4 @@ us_airport = spark.read.format('csv').load('s3://dend-capstone-data/raw/codes/ai
                         .withColumnRenamed("ident", "icao_code")\
                         .drop("coordinates", "gps_code", "local_code", "continent",
                               "iso_region", "iso_country")
-us_airport.write.mode("overwrite").parquet("s3://de-capstone/lake/codes/airport_code/")
+us_airport.write.mode("overwrite").parquet("s3://de-capstone/lake/codes/airport_codes/")
