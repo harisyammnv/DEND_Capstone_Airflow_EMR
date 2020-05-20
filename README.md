@@ -35,6 +35,8 @@ After finishing the above steps. Fill in the `dwh.cfg` with your details
 
 Finally to create the cloud-formation stack use: `python create_resources.py`
 
+#### Project Architechture
+![Architechture](./AWS_Help/architechture.png)
 
 ##### External Data Sources
 1) [Port Codes; Nationality Codes And Port of Entry codes](https://fam.state.gov/fam/09FAM/09FAM010205.html)
