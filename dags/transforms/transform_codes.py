@@ -47,6 +47,6 @@ us_airport = spark.read.format('csv').load('s3://dend-capstone-data/raw/codes/ai
                         .withColumn("country", udf_parse_country_code("iso_region"))\
                         .withColumn("state_code", udf_parse_state_code("iso_region"))\
                         .withColumnRenamed("ident", "icao_code")\
-                        .drop("coordinates", "gps_code", "local_code", "continent",
-                              "iso_region", "iso_country")
+                        .drop("coordinates", "gps_code", "local_code", "iso_region", "iso_country")
+
 us_airport.write.mode("overwrite").parquet("s3://de-capstone/lake/codes/airport_codes/")

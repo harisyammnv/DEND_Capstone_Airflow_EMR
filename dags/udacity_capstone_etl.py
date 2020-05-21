@@ -6,11 +6,11 @@ import s3fs
 import configparser
 import re
 import pandas as pd
-from plugins.helpers import aws_connections
-from dags.lib.emr_cluster_provider import *
-from dags.lib.emr_session_provider import *
+from lib.emr_cluster_provider import *
+from lib.emr_session_provider import *
 # airflow
 from airflow import DAG
+from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
 from airflow.operators.postgres_operator import PostgresOperator
@@ -20,11 +20,12 @@ from airflow import AirflowException
 config = configparser.ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
 
-aws_connect = aws_connections.get_aws_access_id(aws_connections.AirflowConnectionIds.S3)
+aws_hook = AwsHook('aws_credentials')
+credentials = aws_hook.get_credentials()
 
 
-PARAMS = {'aws_access_key': aws_connect.get('aws_access_key'),
-          'aws_secret': aws_connect.get('aws_secret'),
+PARAMS = {'aws_access_key': credentials.access_key,
+          'aws_secret': credentials.secret_key,
           'FINAL_DATA_BUCKET' : config.get('S3', 'FINAL_DATA_BUCKET'),
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'VISA_DATA_LOC' : config.get('S3', 'VISA_DATA'),
@@ -68,6 +69,9 @@ def sas_labels_to_csv(*args, **kwargs):
             if 'PORT' in key:
                 i94port_i94code = pd.DataFrame(data_dict[key], columns=['i94_port_code', 'i94_airport_location'])
                 i94port_i94code[['port_city', 'port_state']] = i94port_i94code['i94_airport_location'].str.rsplit(',',1,expand=True)
+                i94port_i94code.loc[i94port_i94code.port_city == 'MARIPOSA AZ', 'port_state'] = 'AZ'
+                i94port_i94code.loc[i94port_i94code.port_city == 'MARIPOSA AZ', 'port_city'] = 'MARIPOSA'
+                i94port_i94code.loc[i94port_i94code.port_city == 'WASHINGTON DC', 'port_state'] = 'DC'
                 i94port_i94code.drop(['i94_airport_location'], axis=1, inplace=True)
                 df_dict['i94port_i94code'] = i94port_i94code
             if 'MODE' in key:
@@ -82,7 +86,7 @@ def sas_labels_to_csv(*args, **kwargs):
 
     for key in df_dict.keys():
         logging.info(f"Writing {key} Table to Final S3 Bucket")
-        with s3.open(f"{PARAMS['FINAL_DATA_BUCKET']}/i94_meta_data/{key}.csv", "w") as f:
+        with s3.open(f"{PARAMS['RAW_DATA_BUCKET']}/raw/i94_meta_data/{key}.csv", "w") as f:
             df_dict[key].to_csv(f, index=False)
 
 
