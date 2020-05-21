@@ -24,4 +24,4 @@ demographics = spark.read.format('csv').options(header='true', inferSchema='true
                 .withColumnRenamed("Count", "count")\
 
 
-demographics.write.mode("overwrite").parquet("s3://dend-capstone-data/lake/demographics/")
+demographics.write.mode("overwrite").parquet("s3://test-capstone-final/lake/demographics/")

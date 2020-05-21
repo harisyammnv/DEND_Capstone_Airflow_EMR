@@ -57,4 +57,4 @@ schema_columns = ['cicid','entry_year','entry_month','country_id','res_id','port
 immigration_df = immigration_df.selectExpr(create_cast_select_exprs(sas_columns,schema_columns))
 
 
-immigration_df.write.partitionBy("entry_year","entry_month").mode("append").parquet("s3://dend-capstone-data/lake/immigrantion/")
+immigration_df.write.partitionBy("entry_year","entry_month").mode("append").parquet("s3://test-capstone-final/lake/immigrantion/")

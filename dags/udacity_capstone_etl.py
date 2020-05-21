@@ -137,11 +137,12 @@ def terminate_emr_cluster(**kwargs):
 def submit_transform(**kwargs):
     cluster_id = Variable.get("cluster_id")
     cluster_dns = emr_cp.get_cluster_dns(cluster_id)
-    headers = emr.create_spark_session(cluster_dns, 'pyspark')
-    session_url = emr.wait_for_idle_session(cluster_dns, headers)
-    statement_response = emr.submit_statement(session_url, kwargs['params']['file'])
-    logs = emr.track_statement_progress(cluster_dns, statement_response.headers)
-    emr.kill_spark_session(session_url)
+    emr_session = EMRSessionProvider(master_dns=cluster_dns)
+    headers = emr_session.create_spark_session('pyspark')
+    emr_session.wait_for_idle_session(headers)
+    statement_response = emr_session.submit_statement(kwargs['params']['file'])
+    logs = emr_session.track_statement_progress(statement_response.headers)
+    emr_session.kill_spark_session()
     if kwargs['params']['log']:
         for line in logs:
             logging.info(line)
@@ -171,8 +172,17 @@ task_write_sas_codes_to_s3 = PythonOperator(
     python_callable=sas_labels_to_csv,
     dag=dag
 )
+transform_visa = PythonOperator(
+    task_id='transform_visa',
+    python_callable=submit_transform,
+    params={"file" : '/root/airflow/dags/transforms/transform_visa.py', "log":False,
+            "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
+                    "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
+    dag=dag)
+
 
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 create_cluster >> wait_for_cluster_completion
-wait_for_cluster_completion >> terminate_cluster
-terminate_cluster >> finish_operator
+wait_for_cluster_completion >> transform_visa
+task_write_sas_codes_to_s3 >> finish_operator
+transform_visa >> finish_operator

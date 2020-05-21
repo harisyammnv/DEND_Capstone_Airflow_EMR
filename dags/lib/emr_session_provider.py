@@ -37,10 +37,11 @@ class EMRSessionProvider:
         requests.delete(self.session_url, headers={'Content-Type': 'application/json'})
 
     # Submits the scala code as a simple JSON command to the Livy server
-    def submit_statement(self, statement_path):
+    def submit_statement(self, statement_path, args=''):
         statements_url = self.session_url + '/statements'
         with open(statement_path, 'r') as f:
             code = f.read()
+        code = args + code
         data = {'code': code}
         response = requests.post(statements_url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         logging.info(response.json())
