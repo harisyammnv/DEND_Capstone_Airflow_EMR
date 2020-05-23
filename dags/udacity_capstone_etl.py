@@ -44,7 +44,7 @@ def sas_labels_to_csv(*args, **kwargs):
                            secret=PARAMS['aws_secret'])
 
     with s3.open(PARAMS['RAW_DATA_BUCKET'] + PARAMS['SAS_LABELS_DATA_LOC'] +
-                 'I94_SAS_Labels_Descriptions.SAS') as i94_description:
+                 'I94_SAS_Labels_Descriptions.SAS',"r") as i94_description:
         i94_label_content = i94_description.read()
 
     data_dict = {}
@@ -180,10 +180,26 @@ transform_visa = PythonOperator(
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
 
+transform_i94 = PythonOperator(
+    task_id='transform_i94_meta_data',
+    python_callable=submit_transform,
+    params={"file" : '/root/airflow/dags/transforms/transform_i94_meta_data.py', "log":False},
+    dag=dag)
+
+transform_demographics = PythonOperator(
+    task_id='transform_demographics',
+    python_callable=submit_transform,
+    params={"file" : '/root/airflow/dags/transforms/transform_demographics.py', "log":False},
+    dag=dag)
+
+transform_codes = PythonOperator(
+    task_id='transform_codes',
+    python_callable=submit_transform,
+    params={"file" : '/root/airflow/dags/transforms/transform_codes.py', "log":False},
+    dag=dag)
 
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
-create_cluster >> wait_for_cluster_completion
-wait_for_cluster_completion >> transform_visa
-task_write_sas_codes_to_s3 >> finish_operator
-transform_visa >> terminate_cluster
+[task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion
+wait_for_cluster_completion >> [transform_visa, transform_demographics, transform_codes, transform_i94]
+[transform_visa, transform_demographics, transform_codes, transform_i94] >> terminate_cluster
 terminate_cluster >> finish_operator
