@@ -185,4 +185,5 @@ start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 create_cluster >> wait_for_cluster_completion
 wait_for_cluster_completion >> transform_visa
 task_write_sas_codes_to_s3 >> finish_operator
-transform_visa >> finish_operator
+transform_visa >> terminate_cluster
+terminate_cluster >> finish_operator
