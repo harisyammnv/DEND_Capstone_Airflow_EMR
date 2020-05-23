@@ -85,8 +85,8 @@ def sas_labels_to_csv(*args, **kwargs):
                 df_dict['i94visa'] = i94visa
 
     for key in df_dict.keys():
-        logging.info(f"Writing {key} Table to Final S3 Bucket")
-        with s3.open(f"{PARAMS['RAW_DATA_BUCKET']}/raw/i94_meta_data/{key}.csv", "w") as f:
+        logging.info("Writing {} Table to Final S3 Bucket".format(key))
+        with s3.open(r"{}/raw/i94_meta_data/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], key), "w") as f:
             df_dict[key].to_csv(f, index=False)
 
 
