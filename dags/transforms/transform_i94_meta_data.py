@@ -26,7 +26,7 @@ i94_cit = spark.read.format('csv').load('s3://dend-capstone-data/raw/i94_meta_da
 i94_cit_df = i94_cit.selectExpr("i94_country_code as country_id","country_name as country")
 i94_cit_df.write.mode("overwrite").parquet("s3://test-capstone-final/lake/i94_meta_data/country_codes/")
 
-i94_mode = spark.read.format('csv').load('s3://dend-capstone-data/raw/i94_meta_data/i94_mode.csv', header=True, inferSchema=True)
+i94_mode = spark.read.format('csv').load('s3://dend-capstone-data/raw/i94_meta_data/i94mode.csv', header=True, inferSchema=True)
 i94_mode_df = i94_mode.selectExpr("i94_mode_code as mode_id","i94_mode as transportation_mode")
 i94_mode_df.write.mode("overwrite").parquet("s3://test-capstone-final/lake/i94_meta_data/transportation/")
 
