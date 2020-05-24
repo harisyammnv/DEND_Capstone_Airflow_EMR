@@ -17,7 +17,6 @@ def parse_state_code(x):
 
 
 udf_parse_state_code = udf(lambda x: parse_state_code(x), StringType())
-
 i94_addr = spark.read.format('csv').load('s3://dend-capstone-data/raw/i94_meta_data/i94addr.csv', header=True, inferSchema=True)
 i94_addr_df = i94_addr.selectExpr("i94_state_code as state_code","i94_state_name as state_name")
 i94_addr_df.write.mode("overwrite").parquet("s3://test-capstone-final/lake/i94_meta_data/state_codes/")
@@ -36,5 +35,5 @@ i94_port_df = i94_port.selectExpr("i94_port_code as port_code","port_city as cit
 i94_port_df.write.mode("overwrite").parquet("s3://test-capstone-final/lake/i94_meta_data/port_codes/")
 
 i94_visa = spark.read.format('csv').load('s3://dend-capstone-data/raw/i94_meta_data/i94visa.csv', header=True, inferSchema=True)
-i94_visa_df = i94_visa.selectExpr("i94_visa_code as visa_code","i94_visa as visa_purpose")
+i94_visa_df = i94_visa.selectExpr("i94_visa_code as visa_code","visa_purpose as visa_purpose")
 i94_visa_df.write.mode("overwrite").parquet("s3://test-capstone-final/lake/i94_meta_data/visa/")
