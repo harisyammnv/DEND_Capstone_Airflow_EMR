@@ -183,19 +183,25 @@ transform_visa = PythonOperator(
 transform_i94 = PythonOperator(
     task_id='transform_i94_meta_data',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_i94_meta_data.py', "log":False},
+    params={"file" : '/root/airflow/dags/transforms/transform_i94_meta_data.py', "log":False,
+            "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
+                    "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
 
 transform_demographics = PythonOperator(
     task_id='transform_demographics',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_demographics.py', "log":False},
+    params={"file" : '/root/airflow/dags/transforms/transform_demographics.py', "log":False,
+            "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
+                    "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
 
 transform_codes = PythonOperator(
     task_id='transform_codes',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_codes.py', "log":False},
+    params={"file" : '/root/airflow/dags/transforms/transform_codes.py', "log":False,
+            "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
+                    "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
 
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]

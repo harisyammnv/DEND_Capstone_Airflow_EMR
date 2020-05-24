@@ -1,6 +1,7 @@
 import pyspark.sql.functions as F
 from pyspark.sql.types import *
 from pyspark.sql.functions import udf
+
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -16,7 +17,7 @@ if args.output:
 else:
     output_bucket = 'test-capstone-final'
 
-if input_bucket!='' and output_bucket!='':
+if input_bucket != '' and output_bucket != '':
     visa = spark.read.format('csv').load('s3://{}/raw/us-visa/visa-type.csv'.format(input_bucket), header=True, inferSchema=True)
     visa_df = visa.withColumnRenamed("visa-type", "visa_type").withColumnRenamed("description", "visa_type_description")
     visa_df.write.mode("overwrite").parquet("s3://{}/lake/visa-type/".format(output_bucket))
