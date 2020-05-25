@@ -5,6 +5,7 @@ from pyspark.sql.types import *
 import math
 from datetime import datetime, timedelta
 import sys
+import argparse
 
 
 def to_datetime(x):
@@ -15,14 +16,14 @@ def to_datetime(x):
         return None
 
 
-def to_datetimefrstr(x):
+def to_datetime_frm_str(x):
     try:
         return datetime.strptime(x, '%m%d%Y')
     except:
         return None
 
 
-udf_to_datetimefrstr = udf(lambda x: to_datetimefrstr(x), DateType())
+udf_to_datetime_frm_str = udf(lambda x: to_datetime_frm_str(x), DateType())
 udf_to_datetime_sas = udf(lambda x: to_datetime(x), DateType())
 
 
@@ -30,14 +31,35 @@ def create_cast_select_exprs(sas_cols: list, schema_cols: list) -> list:
     exprs = []
     if sas_cols!='':
         exprs = ["{} AS {}".format(dfc,sc) for dfc, sc in zip(sas_cols, schema_cols)]
-        return exprs
+    else:
+        raise ValueError('Cannot create Select Expression without proper header')
+    return exprs
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input", help="Location for Raw Data S3 Bucket")
+parser.add_argument("--output", help="Location for Processed Data in S3")
+parser.add_argument("--month_year", help="File name indicator for Data in S3")
+args = parser.parse_args()
+if args.input:
+    input_bucket = args.input
+else:
+    input_bucket = 'dend-capstone-data'
+if args.output:
+    output_bucket = args.output
+else:
+    output_bucket = 'test-capstone-final'
+if args.month_year:
+    file_indicator = args.month_year
+else:
+    raise ValueError("Cannot open S3 SAS File without a valid file indicator like month and year")
 
 
 immigration = spark.read.format('com.github.saurfang.sas.spark')\
-                     .load('s3://dend-capstone-data/raw/i94_immigration_data/i94_{}_sub.sas7bdat'.format(month_year))\
+                     .load('s3://{}/raw/i94_immigration_data/i94_{}_sub.sas7bdat'.format(input_bucket, file_indicator))\
                      .withColumn("arrival_date", udf_to_datetime_sas("arrdate"))\
                      .withColumn("departure_date", udf_to_datetime_sas("depdate"))\
-                     .withColumn("departure_deadline", udf_to_datetimefrstr("dtaddto"))
+                     .withColumn("departure_deadline", to_datetime_frm_str("dtaddto"))
 
 immigration_df = immigration.drop('validres','delete_days','delete_mexl','delete_dup','delete_recdup','delete_visa',
                                   'arrdate','dtadfile', 'occup', 'entdepa', 'entdepd', 'entdepu')
@@ -57,4 +79,5 @@ schema_columns = ['cicid','entry_year','entry_month','country_id','res_id','port
 immigration_df = immigration_df.selectExpr(create_cast_select_exprs(sas_columns,schema_columns))
 
 
-immigration_df.write.partitionBy("entry_year","entry_month").mode("append").parquet("s3://test-capstone-final/lake/immigrantion/")
+immigration_df.write.partitionBy("entry_year","entry_month").mode("append").\
+    parquet("s3://{}/lake/immigrantion/".format(output_bucket))

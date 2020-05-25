@@ -1,9 +1,6 @@
-from datetime import datetime, timedelta
-import os
-import shutil
 import logging
 import s3fs
-import configparser
+from configparser import ConfigParser
 import re
 import pandas as pd
 from lib.emr_cluster_provider import *
@@ -13,11 +10,10 @@ from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
-from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
 
-config = configparser.ConfigParser()
+config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
 
 aws_hook = AwsHook('aws_credentials')
@@ -100,14 +96,14 @@ default_args = {
     'provide_context': True
 }
 
-dag = DAG('Udacity_Capstone',
+dag = DAG('Dag_Meta_Data_Transform',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
           schedule_interval=None,
         )
 
-start_operator = DummyOperator(task_id='Begin_ETL',  dag=dag)
-finish_operator = DummyOperator(task_id='End_ETL',  dag=dag)
+start_operator = DummyOperator(task_id='Begin_ELT',  dag=dag)
+finish_operator = DummyOperator(task_id='End_ELT',  dag=dag)
 
 # create boto3 emr client
 emr_cp = EMRClusterProvider(aws_key=PARAMS['aws_access_key'], aws_secret=PARAMS['aws_secret'],
