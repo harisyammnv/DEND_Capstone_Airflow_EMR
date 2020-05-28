@@ -64,3 +64,16 @@ us_airport = spark.read.format('csv').load('s3://{}/raw/codes/airport-codes.csv'
                         .drop("coordinates", "gps_code", "local_code", "iso_region", "iso_country")
 
 us_airport.write.mode("overwrite").parquet("s3://{}/lake/codes/airport_codes/".format(output_bucket))
+
+
+airlines = spark.read.format('csv')\
+    .option("delimiter", "\t")\
+    .load('s3://{}/raw/codes/airlines-codes.csv'.format(input_bucket), header=True, inferSchema=True)\
+    .withColumnRenamed("AIRLINE NAME", "airline_name")\
+    .withColumnRenamed("IATA DESIGNATOR", "airline_iata_code")\
+    .withColumnRenamed("3 DIGIT CODE", "airline_3_digit_code")\
+    .withColumnRenamed("ICAO CODE", "airline_icao_code")\
+    .withColumnRenamed("COUNTRY / TERRITORY", "country")
+
+airlines.write.mode("overwrite").parquet("s3://{}/lake/codes/airline_codes/".format(output_bucket))
+

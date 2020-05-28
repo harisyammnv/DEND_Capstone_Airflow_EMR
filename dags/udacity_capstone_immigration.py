@@ -1,8 +1,5 @@
 import logging
-import s3fs
 from configparser import ConfigParser
-import re
-import pandas as pd
 from lib.emr_cluster_provider import *
 from lib.emr_session_provider import *
 # airflow

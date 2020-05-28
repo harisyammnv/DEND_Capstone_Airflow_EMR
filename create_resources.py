@@ -53,6 +53,8 @@ if upload_files:
                           CODES_DATA_LOC + "port-of-entry-codes.csv")
     s3_client.upload_file("data/airport-codes.csv", RAW_DATA_BUCKET,
                           CODES_DATA_LOC + "airport-codes.csv")
+    s3_client.upload_file("data/airlines-codes.csv", RAW_DATA_BUCKET,
+                          CODES_DATA_LOC + "airlines-codes.csv")
     s3_client.upload_file("data/visa-issuing-ports.csv", RAW_DATA_BUCKET,
                           VISA_DATA_LOC + "visa-issuing-ports.csv")
     s3_client.upload_file("data/visa-type.csv", RAW_DATA_BUCKET,
