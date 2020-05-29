@@ -10,13 +10,14 @@ class S3DataCheckOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, aws_conn_id: str,region: str,
-                 bucket: str,files_list: list, *args, **kwargs):
+                 bucket: str, prefix: str, file_list: list, *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
         self.region_name = region
         self.bucket_name = bucket
-        self.files_list = files_list
+        self.prefix = prefix
+        self.file_list = file_list
 
     def execute(self, context):
 
@@ -32,15 +33,21 @@ class S3DataCheckOperator(BaseOperator):
         except ClientError as e:
             error_code = int(e.response['Error']['Code'])
             if error_code == 403:
-                self.log.error("Private Bucket. Forbidden Access!")
+                self.log.error("Private Bucket. Forbidden Access to {}".format(self.bucket_name))
                 exists = True
             elif error_code == 404:
-                self.log.error("Bucket Does Not Exist!")
+                self.log.error("Bucket - {} Does Not Exist in S3".format(self.bucket_name))
                 exists = False
 
         if exists and accessible:
-            self.log.info("Bucket - {} is available and accessible")
+            self.log.info("Bucket - {} is available and accessible".format(self.bucket_name))
+            bucket = s3.Bucket(self.bucket_name)
+            objs = list(bucket.objects.filter(Prefix=self.prefix.lstrip('/')))
+            for file in self.file_list:
+                if any([w.key == os.path.join(self.prefix.lstrip('/'), file) for w in objs]):
+                    self.log.info("File - {} exists")
+                else:
+                    raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(file,self.bucket_name))
         else:
-            raise FileNotFoundError(" No S3 BUcket named {} or permissions are not sufficient")
+            raise FileNotFoundError("Bucket - {} does not exists or not accessible!".format(self.bucket_name))
 
-        
