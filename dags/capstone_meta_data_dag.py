@@ -20,7 +20,6 @@ config.read('./plugins/helpers/dwh_airflow.cfg')
 aws_hook = AwsHook('aws_credentials')
 credentials = aws_hook.get_credentials()
 
-
 PARAMS = {'aws_access_key': credentials.access_key,
           'aws_secret': credentials.secret_key,
           'FINAL_DATA_BUCKET' : config.get('S3', 'FINAL_DATA_BUCKET'),
