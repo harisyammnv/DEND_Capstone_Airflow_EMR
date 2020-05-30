@@ -13,6 +13,7 @@ from airflow.models import Variable
 from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
 from airflow.operators.capstone_plugin import S3DataCheckOperator
+from airflow.utils.helpers import chain
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -26,7 +27,7 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'VISA_DATA_LOC' : config.get('S3', 'VISA_DATA'),
           'CODES_DATA_LOC' : config.get('S3','CODES_DATA'),
-          'I94_RAW_DATA_LOC' : config.get('S3','I94_RAW_DATA'),
+          'SAS_LABELS_DATA_LOC' : config.get('S3','SAS_LABELS_DATA'),
           'DEMOGRAPHICS_DATA_LOC' : config.get('S3','DEMOGRAPHICS_DATA'),
           'REGION': config.get('AWS','REGION'),
           'EC2_KEY_PAIR': config.get('AWS','AWS_EC2_KEY_PAIR')
@@ -185,11 +186,11 @@ transform_visa = PythonOperator(
     dag=dag)
 
 i94_data_S3Check = S3DataCheckOperator(
-    task_id="visa_data_check",
+    task_id="i94_data_check",
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['VISA_DATA_LOC'],
+    prefix=PARAMS['SAS_LABELS_DATA_LOC'],
     file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
     dag=dag)
 
@@ -202,11 +203,11 @@ transform_i94 = PythonOperator(
     dag=dag)
 
 demographics_data_S3Check = S3DataCheckOperator(
-    task_id="visa_data_check",
+    task_id="demographics_data_check",
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['VISA_DATA_LOC'],
+    prefix=PARAMS['DEMOGRAPHICS_DATA_LOC'],
     file_list=['us-cities-demographics.csv'],
     dag=dag)
 
@@ -219,11 +220,11 @@ transform_demographics = PythonOperator(
     dag=dag)
 
 codes_data_S3Check = S3DataCheckOperator(
-    task_id="visa_data_check",
+    task_id="codes_data_check",
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['VISA_DATA_LOC'],
+    prefix=PARAMS['CODES_DATA_LOC'],
     file_list=['nationality-codes.csv', 'port-of-entry-codes.csv','airport-codes.csv','airlines-codes.csv'],
     dag=dag)
 
@@ -237,10 +238,6 @@ transform_codes = PythonOperator(
 
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion
-wait_for_cluster_completion >> [visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check, i94_data_S3Check]
-visa_data_S3Check >> transform_visa
-demographics_data_S3Check >> transform_demographics
-codes_data_S3Check >> transform_codes
-i94_data_S3Check >> transform_i94
-[transform_visa, transform_demographics, transform_codes, transform_i94] >> terminate_cluster
+chain(wait_for_cluster_completion,
+[visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check, i94_data_S3Check], [transform_visa, transform_demographics, transform_codes, transform_i94],terminate_cluster)
 terminate_cluster >> finish_operator
