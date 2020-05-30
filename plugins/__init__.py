@@ -10,5 +10,5 @@ import helpers
 class UdacityPlugin(AirflowPlugin):
     name = "capstone_plugin"
     operators = [
-        operators.S3DataCheckOperator,
+        operators.S3_Data_Check,
     ]
