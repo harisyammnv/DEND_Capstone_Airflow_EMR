@@ -3,11 +3,11 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
-# from airflow.operators.capstone_plugin import S3DataCheckOperator
-from plugins.operators.S3_Data_Check import S3DataCheckOperator
+from airflow.operators.capstone_plugin import S3DataCheckOperator
+#from plugins.operators.S3_Data_Check import S3DataCheckOperator
 from configparser import ConfigParser
 from airflow.contrib.hooks.aws_hook import AwsHook
-
+from airflow.models import Variable
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -38,12 +38,6 @@ default_args = {
     'wait_for_downstream': True
 }
 
-exec_month = '{{execution_date.strftime("%b").lower()}}'
-exec_year = '{{execution_date.strftime("%y")}}'
-
-
-def print_month_date():
-    print('Month+Year: ', exec_month+exec_year)
 
 # dag is complete
 dag = DAG('Capstone_DWH_Dag',
@@ -55,13 +49,7 @@ dag = DAG('Capstone_DWH_Dag',
 start_operator = DummyOperator(task_id='Begin_execution', dag=dag)
 end_operator = DummyOperator(task_id='End_execution', dag=dag)
 
-print_val = PythonOperator(
-    task_id='Printing',
-    python_callable=print_month_date,
-    dag=dag
-)
 
-'''
 i94_meta_data_S3Check = S3DataCheckOperator(
     task_id="i94_data_check",
     aws_conn_id='aws_credentials',
@@ -109,8 +97,5 @@ demographics_data_S3Check = S3DataCheckOperator(
     
 start_operator >> [i94_meta_data_S3Check, i94_sas_data_S3Check,
                    visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check]
-'''
-
-start_operator >> print_val >> end_operator
 
 

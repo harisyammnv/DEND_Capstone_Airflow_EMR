@@ -22,8 +22,6 @@ config.read('./plugins/helpers/dwh_airflow.cfg')
 aws_hook = AwsHook('aws_credentials')
 credentials = aws_hook.get_credentials()
 
-exec_month = '{{execution_date.strftime("%b").lower()}}'
-exec_year = '{{execution_date.strftime("%y")}}'
 
 PARAMS = {'aws_access_key': credentials.access_key,
           'aws_secret': credentials.secret_key,
@@ -95,27 +93,34 @@ JOB_FLOW = {
 }
 
 
-TRANSFORM_IMMIGRATION_SAS_DATA = [
-{
-    'Name': 'sas_i94_immigration',
-    'ActionOnFailure': 'CONTINUE',
-    'HadoopJarStep': {
-        'Jar': 'command-runner.jar',
-        'Args': [
-            'spark-submit',
-             '--deploy-mode',
-             'client',
-             '--master',
-             'yarn',
-             '/home/hadoop/python_apps/transform_immigration.py',
-             '--input', PARAMS['RAW_DATA_BUCKET'],
-             '--output', PARAMS['FINAL_DATA_BUCKET'],
-             '--month', '{{execution_date.strftime("%b").lower()}}',
-             '--year', '{{execution_date.strftime("%y")}}'
-        ]
-    }
-}
-]
+def create_step_params(**kwargs):
+    exec_month = kwargs['execution_date'].strftime("%b").lower()
+    exec_year = kwargs['execution_date'].strftime("%y")
+    TRANSFORM_IMMIGRATION_SAS_DATA = [
+        {
+            'Name': 'sas_i94_immigration',
+            'ActionOnFailure': 'CONTINUE',
+            'HadoopJarStep': {
+                'Jar': 'command-runner.jar',
+                'Args': [
+                    'spark-submit',
+                    '--deploy-mode',
+                    'client',
+                    '--master',
+                    'yarn',
+                    '/home/hadoop/python_apps/transform_immigration.py',
+                    '--input', kwargs['input_bucket'],
+                    '--output', kwargs['output_bucket'],
+                    '--month', exec_month,
+                    '--year', exec_year
+                ]
+            }
+        }
+    ]
+
+    result = {'STEP_PARAMS': TRANSFORM_IMMIGRATION_SAS_DATA, 'month': exec_month, 'year': exec_year}
+    return result
+
 
 dag = DAG('immigration_transform_Dag',
           default_args=default_args,
@@ -126,13 +131,21 @@ dag = DAG('immigration_transform_Dag',
 start_operator = DummyOperator(task_id='Begin_Immigration_Transform',  dag=dag)
 finish_operator = DummyOperator(task_id='End_Immigration_Transform',  dag=dag)
 
+
+create_step_template = PythonOperator(
+    task_id='create_emr_step_template',
+    python_callable=create_step_params,
+    provide_context=True,
+    dag=dag
+)
+
 immigration_data_check = S3DataCheckOperator(
     task_id="immigration_data_check",
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
     prefix=PARAMS['I94_RAW_DATA_LOC'],
-    file_list=['i94_{}_sub.sas7bdat'.format(exec_month+exec_year)],
+    file_name="i94_{{ task_instance.xcom_pull('create_step_template') }}_sub.sas7bdat",
     dag=dag)
 
 cluster_creator = EmrCreateJobFlowOperator(

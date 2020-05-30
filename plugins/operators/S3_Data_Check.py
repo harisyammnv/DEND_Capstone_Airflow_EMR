@@ -5,10 +5,11 @@ import os
 
 
 class S3DataCheckOperator(BaseOperator):
+    template_fields = ['file_name']
 
     @apply_defaults
     def __init__(self, aws_conn_id="", region=None,
-                 bucket=None, prefix=None, file_list=None, wild_card_extension=None, *args, **kwargs):
+                 bucket=None, prefix=None, file_list=None, file_name=None, wild_card_extension=None, *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
@@ -16,6 +17,7 @@ class S3DataCheckOperator(BaseOperator):
         self.bucket_name = bucket
         self.prefix = prefix
         self.file_list = file_list
+        self.file_name = file_name
         self.wild_card_extension = wild_card_extension
 
     def execute(self, context):
