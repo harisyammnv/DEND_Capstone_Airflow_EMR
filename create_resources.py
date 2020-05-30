@@ -35,8 +35,8 @@ if create_stack:
     if valid_stack_template:
         aws_stack_provider.create_stack(stack_name='DEND-Stack')
 
-    #if aws_stack_provider.stack_exists(stack_name='DEND-Stack'):
-    #    print('Cloud Formation Stack Exists')
+    if aws_stack_provider.stack_exists(stack_name='DEND-Stack'):
+        print('Cloud Formation Stack created')
 
 if upload_files:
     print('Uploading Raw Data files to S3')

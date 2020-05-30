@@ -7,8 +7,8 @@ import os
 class S3DataCheckOperator(BaseOperator):
 
     @apply_defaults
-    def __init__(self, aws_conn_id: str,region: str,
-                 bucket: str, prefix: str, file_list: list, wild_card_extension='', *args, **kwargs):
+    def __init__(self, aws_conn_id='', region='',
+                 bucket='', prefix='', file_list=None, wild_card_extension='', *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
