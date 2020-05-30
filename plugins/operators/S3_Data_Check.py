@@ -1,16 +1,14 @@
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from airflow.contrib.hooks.aws_hook import AwsHook
+from airflow.hooks.S3_hook import S3Hook
 import os
-from botocore.client import ClientError
-import boto3
 
 
 class S3DataCheckOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, aws_conn_id: str,region: str,
-                 bucket: str, prefix: str, file_list: list, *args, **kwargs):
+                 bucket: str, prefix: str, file_list: list, wild_card_extension='', *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
@@ -18,36 +16,42 @@ class S3DataCheckOperator(BaseOperator):
         self.bucket_name = bucket
         self.prefix = prefix
         self.file_list = file_list
+        self.wild_card_extension = wild_card_extension
 
     def execute(self, context):
 
-        aws_hook = AwsHook(self.aws_conn_id)
-        credentials = aws_hook.get_credentials()
-        s3 = boto3.resource('S3', region_name= self.region_name, aws_access_key_id=credentials.access_key,
-                            aws_secret_access_key=credentials.secret_key)
-        exists = True
-        accessible = False
-        try:
-            s3.meta.client.head_bucket(Bucket=self.bucket_name)
-            accessible = True
-        except ClientError as e:
-            error_code = int(e.response['Error']['Code'])
-            if error_code == 403:
-                self.log.error("Private Bucket. Forbidden Access to {}".format(self.bucket_name))
-                exists = True
-            elif error_code == 404:
-                self.log.error("Bucket - {} Does Not Exist in S3".format(self.bucket_name))
-                exists = False
+        s3_hook = S3Hook(aws_conn_id= self.aws_conn_id)
 
-        if exists and accessible:
-            self.log.info("Bucket - {} is available and accessible".format(self.bucket_name))
-            bucket = s3.Bucket(self.bucket_name)
-            objs = list(bucket.objects.filter(Prefix=self.prefix.lstrip('/')))
-            for file in self.file_list:
-                if any([w.key == os.path.join(self.prefix.lstrip('/'), file) for w in objs]):
-                    self.log.info("File - {} exists")
-                else:
-                    raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(file,self.bucket_name))
+        exists = s3_hook.check_for_bucket(self.bucket_name)
+        if exists:
+            self.log.info("S3 Bucket - {} exists".format(self.bucket_name))
         else:
             raise FileNotFoundError("Bucket - {} does not exists or not accessible!".format(self.bucket_name))
+
+        exists = s3_hook.check_for_prefix(prefix=self.prefix, delimiter='/', bucket_name=self.bucket_name)
+        if exists:
+            self.log.info("Prefix - {} exists in the Bucket - {}".format(self.prefix, self.bucket_name))
+        else:
+            raise FileNotFoundError("Prefix - {} not found in S3 Bucket - {}".format(self.prefix, self.bucket_name))
+
+        if self.wild_card_extension == '' and len(self.file_list)>0:
+            for file in self.file_list:
+                if s3_hook.check_for_key(key = os.path.join(self.prefix.lstrip('/'), file), bucket_name=self.bucket_name):
+                    self.log.info("File - {} exists in S3 Bucket - {}/{}".format(file, self.bucket_name, self.prefix.lstrip('/')))
+                else:
+                    raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(file, self.bucket_name))
+        else:
+            raise ValueError("File list has to be provided if the there is no wild card extension")
+
+        if self.wild_card_extension!='':
+            full_key = os.path.join(self.prefix, self.wild_card_extension)
+            success = s3_hook.check_for_wildcard_key(wildcard_key=full_key,
+                                                     bucket_name=self.bucket_name,
+                                                     delimiter='/')
+            if success:
+                self.log.info("Found the key: {}".format(full_key))
+            else:
+                self.log.info("Invalid key: {}".format(full_key))
+                raise FileNotFoundError("No key named {}/{} ".format(self.bucket_name, full_key))
+
 

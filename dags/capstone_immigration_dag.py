@@ -9,6 +9,11 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
 from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
+from airflow.contrib.operators.emr_create_job_flow_operator import EmrCreateJobFlowOperator
+from airflow.contrib.operators.emr_add_steps_operator import EmrAddStepsOperator
+from airflow.contrib.sensors.emr_step_sensor import EmrStepSensor
+from airflow.contrib.operators.emr_terminate_job_flow_operator import EmrTerminateJobFlowOperator
+from plugins.operators.S3_Data_Check import S3DataCheckOperator
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -30,23 +35,141 @@ PARAMS = {'aws_access_key': credentials.access_key,
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2016, 1, 1),
-    'end_date': datetime(2017, 1, 1),
+    'start_date': datetime(2016, 4, 1),
+    'end_date': datetime(2016, 5, 1),
     'retries': 0,
     'email_on_failure': False,
     'email_on_retry': False,
     'provide_context': True
 }
 
+JOB_FLOW = {
+    'Name' : 'sas-immigration',
+    'LogUri' : 's3://dend-capstone-data/emr-logs/',
+    'ReleaseLabel' : 'emr-5.25.0',
+    'Instances' : {
+      'InstanceGroups': [
+            {
+                'Name': 'Master nodes',
+                'Market': 'ON_DEMAND',
+                'InstanceRole': 'MASTER',
+                'InstanceType': 'm5.xlarge',
+                'InstanceCount': 1,
+            },
+            {
+                'Name': 'Slave nodes',
+                'Market': 'ON_DEMAND',
+                'InstanceRole': 'CORE',
+                'InstanceType': 'm5.xlarge',
+                'InstanceCount': 3,
+            }
+        ],
+        'Ec2KeyName': PARAMS['EC2_KEY_PAIR'],
+        'KeepJobFlowAliveWhenNoSteps': True,
+        'TerminationProtected': False
+    },
+    'BootstrapActions': [
+        {
+            'Name': 'copy python files to local',
+            'ScriptBootstrapAction': {
+                'Path': 's3://dend-capstone-data/awsemr/bootstrap_action.sh'
+            }
+        },
+    ],
+    'Applications':[{
+        'Name': 'Spark'
+    },{
+        'Name': 'Livy'
+    },{
+        'Name': 'Hadoop'
+    },{
+        'Name': 'Zeppelin'
+    },{
+        'Name': 'Ganglia'
+    }],
+    'JobFlowRole':'EMR_EC2_DefaultRole',
+    'ServiceRole':'EMR_DefaultRole'
+}
+
+
+TRANSFORM_IMMIGRATION_SAS_DATA = [
+{
+    'Name': 'sas_i94_immigration',
+    'ActionOnFailure': 'CONTINUE',
+    'HadoopJarStep': {
+        'Jar': 'command-runner.jar',
+        'Args': [
+            'spark-submit',
+             '--deploy-mode',
+             'client',
+             '--master',
+             'yarn',
+             '/home/hadoop/python_apps/transform_immigration.py',
+             '--input', PARAMS['RAW_DATA_BUCKET'],
+             '--output', PARAMS['FINAL_DATA_BUCKET'],
+             '--month', '{{execution_date.month}}',
+             '--year', '{{execution_date.year}}'
+        ]
+    }
+}
+]
+
 dag = DAG('Dag_Immigration_Transform',
           default_args=default_args,
-          description='Load and transform data in Redshift with Airflow',
+          description='Transform Immigration data in EMR with Airflow',
           schedule_interval=None,
         )
 
-start_operator = DummyOperator(task_id='Begin_ELT',  dag=dag)
-finish_operator = DummyOperator(task_id='End_ELT',  dag=dag)
+start_operator = DummyOperator(task_id='Begin_Immigration_Transform',  dag=dag)
+finish_operator = DummyOperator(task_id='End_Immigration_Transform',  dag=dag)
 
+immigration_data_check = S3DataCheckOperator(
+    task_id="visa_data_check",
+    aws_conn_id='aws_credentials',
+    region=PARAMS['REGION'],
+    bucket=PARAMS['RAW_DATA_BUCKET'],
+    prefix=PARAMS['SAS_LABELS_DATA'],
+    file_list=['i94_{execution_date.strftime("%b").lower()}{execution_date.year}_sub.sas7bdat'],
+    dag=dag)
+
+cluster_creator = EmrCreateJobFlowOperator(
+    task_id='create_job_flow',
+    job_flow_overrides=JOB_FLOW,
+    aws_conn_id='aws_credentials',
+    emr_conn_id='emr_default',
+    dag=dag
+)
+
+add_step_task = EmrAddStepsOperator(
+    task_id='add_step',
+    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
+    aws_conn_id='aws_credentials',
+    steps=TRANSFORM_IMMIGRATION_SAS_DATA,
+    dag=dag
+)
+
+watch_prev_step_task = EmrStepSensor(
+    task_id='watch_prev_step',
+    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
+    step_id="{{ task_instance.xcom_pull('add_step', key='return_value')[0] }}",
+    aws_conn_id='aws_credentials',
+    dag=dag
+)
+
+terminate_job_flow_task = EmrTerminateJobFlowOperator(
+    task_id='terminate_job_flow',
+    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
+    aws_conn_id='aws_credentials',
+    trigger_rule="all_done",
+    dag=dag
+)
+start_operator >> immigration_data_check
+immigration_data_check >> cluster_creator
+cluster_creator >> add_step_task
+add_step_task >> watch_prev_step_task
+watch_prev_step_task >> terminate_job_flow_task
+terminate_job_flow_task >> finish_operator
+'''
 # create boto3 emr client
 emr_cp = EMRClusterProvider(aws_key=PARAMS['aws_access_key'], aws_secret=PARAMS['aws_secret'],
                             region=PARAMS['REGION'], key_pair=PARAMS['EC2_KEY_PAIR'], num_nodes=3)
@@ -123,3 +246,5 @@ create_cluster >> wait_for_cluster
 wait_for_cluster >> transform_immigration
 transform_immigration >> terminate_cluster
 terminate_cluster >> finish_operator
+
+'''
