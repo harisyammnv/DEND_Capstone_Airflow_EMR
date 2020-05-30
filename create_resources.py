@@ -18,9 +18,12 @@ CODES_DATA_LOC = config.get('S3','CODES_DATA')
 SAS_LABELS_DATA_LOC = config.get('S3','SAS_LABELS_DATA')
 I94_RAW_DATA_LOC = config.get('S3','I94_RAW_DATA')
 DEMOGRAPHICS_DATA_LOC = config.get('S3','DEMOGRAPHICS_DATA')
+PYTHON_APPS = config.get('S3','PYTHON_APPS')
+AWS_EMR = config.get('S3','AWS_EMR_SH')
 
 create_stack = True
-upload_files = False
+upload_files = True
+sas_data_upload = False
 
 if create_stack:
     aws_stack_provider = AWSCloudFormationStackProvider(aws_key=AWS_ACCESS_KEY, aws_secret=AWS_SECRET,
@@ -39,11 +42,11 @@ if upload_files:
     print('Uploading Raw Data files to S3')
     s3_client = boto3.client('s3', region_name=AWS_REGION,
                              aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET)
-
-    sas_data = "./data/18-83510-I94-Data-2016/"
-    files = [sas_data + f for f in os.listdir(sas_data)]
-    for f in files:
-        s3_client.upload_file(f, RAW_DATA_BUCKET, I94_RAW_DATA_LOC + f.split("/")[-1])
+    if sas_data_upload:
+        sas_data = "./data/18-83510-I94-Data-2016/"
+        files = [sas_data + f for f in os.listdir(sas_data)]
+        for f in files:
+            s3_client.upload_file(f, RAW_DATA_BUCKET, I94_RAW_DATA_LOC + f.split("/")[-1])
 
     s3_client.upload_file("data/us-cities-demographics.csv", RAW_DATA_BUCKET,
                           DEMOGRAPHICS_DATA_LOC + "us-cities-demographics.csv")
@@ -61,4 +64,8 @@ if upload_files:
                           VISA_DATA_LOC + "visa-type.csv")
     s3_client.upload_file("data/I94_SAS_Labels_Descriptions.SAS", RAW_DATA_BUCKET,
                           SAS_LABELS_DATA_LOC + "I94_SAS_Labels_Descriptions.SAS")
+    s3_client.upload_file("emr_bootstrap/bootstrap_action.sh", RAW_DATA_BUCKET,
+                          AWS_EMR + "bootstrap_action.sh")
+    s3_client.upload_file("dags/transforms/transform_immigration.py", RAW_DATA_BUCKET,
+                          PYTHON_APPS + "transform_immigration.py")
     print('Upload Finished')
