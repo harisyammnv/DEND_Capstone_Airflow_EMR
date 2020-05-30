@@ -21,6 +21,8 @@ config.read('./plugins/helpers/dwh_airflow.cfg')
 aws_hook = AwsHook('aws_credentials')
 credentials = aws_hook.get_credentials()
 
+exec_month = '{{execution_date.strftime("%b").lower()}}'
+exec_year = '{{execution_date.strftime("%y")}}'
 
 PARAMS = {'aws_access_key': credentials.access_key,
           'aws_secret': credentials.secret_key,
@@ -107,14 +109,14 @@ TRANSFORM_IMMIGRATION_SAS_DATA = [
              '/home/hadoop/python_apps/transform_immigration.py',
              '--input', PARAMS['RAW_DATA_BUCKET'],
              '--output', PARAMS['FINAL_DATA_BUCKET'],
-             '--month', '{{execution_date.month}}',
-             '--year', '{{execution_date.year}}'
+             '--month', '{{execution_date.strftime("%b").lower()}}',
+             '--year', '{{execution_date.strftime("%y")}}'
         ]
     }
 }
 ]
 
-dag = DAG('Immigration_Transform_Dag',
+dag = DAG('immigration_transform_Dag',
           default_args=default_args,
           description='Transform Immigration data in EMR with Airflow',
           schedule_interval=None,
@@ -124,12 +126,12 @@ start_operator = DummyOperator(task_id='Begin_Immigration_Transform',  dag=dag)
 finish_operator = DummyOperator(task_id='End_Immigration_Transform',  dag=dag)
 
 immigration_data_check = S3DataCheckOperator(
-    task_id="visa_data_check",
+    task_id="immigration_data_check",
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
     prefix=PARAMS['I94_RAW_DATA_LOC'],
-    file_list=['i94_{execution_date.strftime("%b").lower()}{execution_date.year}_sub.sas7bdat'],
+    file_list=['i94_{}_sub.sas7bdat'.format(exec_month+exec_year)],
     dag=dag)
 
 cluster_creator = EmrCreateJobFlowOperator(
