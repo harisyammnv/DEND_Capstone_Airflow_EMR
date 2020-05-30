@@ -114,7 +114,7 @@ TRANSFORM_IMMIGRATION_SAS_DATA = [
 }
 ]
 
-dag = DAG('Dag_Immigration_Transform',
+dag = DAG('Immigration_Transform_Dag',
           default_args=default_args,
           description='Transform Immigration data in EMR with Airflow',
           schedule_interval=None,

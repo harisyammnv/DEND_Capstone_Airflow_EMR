@@ -73,7 +73,7 @@ airlines = spark.read.format('csv')\
     .withColumnRenamed("IATA DESIGNATOR", "airline_iata_code")\
     .withColumnRenamed("3 DIGIT CODE", "airline_3_digit_code")\
     .withColumnRenamed("ICAO CODE", "airline_icao_code")\
-    .withColumnRenamed("COUNTRY / TERRITORY", "country")
+    .withColumnRenamed("COUNTRY / TERRITORY", "origin_country")
 
 airlines.write.mode("overwrite").parquet("s3://{}/lake/codes/airline_codes/".format(output_bucket))
 

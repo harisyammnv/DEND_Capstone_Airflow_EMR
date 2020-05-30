@@ -35,7 +35,8 @@ demographics = spark.read.format('csv').options(header='true', inferSchema='true
     .withColumnRenamed("Total Population", "total_population")\
     .withColumnRenamed("Number of Veterans", "num_of_veterans")\
     .withColumnRenamed("Foreign-born", "foreign_born")\
-    .withColumnRenamed("Average Household Size", "avg_household_size")\
+    .withColumnRenamed("Average Household Size", "avg_household_size") \
+    .withColumnRenamed("State Code", "state_code") \
     .withColumnRenamed("Race", "predominant_race")\
     .withColumnRenamed("Count", "count")\
 

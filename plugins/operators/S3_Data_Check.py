@@ -20,7 +20,7 @@ class S3DataCheckOperator(BaseOperator):
 
     def execute(self, context):
 
-        s3_hook = S3Hook(aws_conn_id= self.aws_conn_id)
+        s3_hook = S3Hook(aws_conn_id=self.aws_conn_id)
 
         exists = s3_hook.check_for_bucket(self.bucket_name)
         if exists:

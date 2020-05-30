@@ -95,7 +95,7 @@ default_args = {
     'provide_context': True
 }
 
-dag = DAG('Dag_Meta_Data_Transform',
+dag = DAG('MetaData_Transform_Dag',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
           schedule_interval=None,
