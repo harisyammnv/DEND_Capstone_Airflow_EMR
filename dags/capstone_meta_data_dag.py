@@ -12,7 +12,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.models import Variable
 from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
-from plugins.operators.S3_Data_Check import S3DataCheckOperator
+from airflow.operators.capstone_plugin import S3DataCheckOperator
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -26,7 +26,6 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'VISA_DATA_LOC' : config.get('S3', 'VISA_DATA'),
           'CODES_DATA_LOC' : config.get('S3','CODES_DATA'),
-          'SAS_LABELS_DATA_LOC' : config.get('S3','SAS_LABELS_DATA'),
           'I94_RAW_DATA_LOC' : config.get('S3','I94_RAW_DATA'),
           'DEMOGRAPHICS_DATA_LOC' : config.get('S3','DEMOGRAPHICS_DATA'),
           'REGION': config.get('AWS','REGION'),

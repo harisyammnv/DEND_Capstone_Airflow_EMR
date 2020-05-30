@@ -27,6 +27,7 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'FINAL_DATA_BUCKET' : config.get('S3', 'FINAL_DATA_BUCKET'),
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'I94_RAW_DATA_LOC' : config.get('S3','I94_RAW_DATA'),
+          'SAS_LABELS_DATA_LOC': config.get('S3', 'SAS_LABELS_DATA'),
           'REGION': config.get('AWS','REGION'),
           'EC2_KEY_PAIR': config.get('AWS','AWS_EC2_KEY_PAIR')
           }
