@@ -14,6 +14,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
 from airflow.operators.capstone_plugin import S3DataCheckOperator
 from airflow.utils.helpers import chain
+from datetime import datetime
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
@@ -239,5 +240,6 @@ transform_codes = PythonOperator(
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion
 chain(wait_for_cluster_completion,
-[visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check, i94_data_S3Check], [transform_visa, transform_demographics, transform_codes, transform_i94],terminate_cluster)
+[visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check, i94_data_S3Check],
+[transform_visa, transform_demographics, transform_codes, transform_i94],terminate_cluster)
 terminate_cluster >> finish_operator

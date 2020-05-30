@@ -38,6 +38,13 @@ default_args = {
     'wait_for_downstream': True
 }
 
+exec_month = '{{execution_date.strftime("%b").lower()}}'
+exec_year = '{{execution_date.strftime("%y")}}'
+
+
+def print_month_date():
+    print('Month+Year: ', exec_month+exec_year)
+
 # dag is complete
 dag = DAG('Capstone_DWH_Dag',
           default_args=default_args,
@@ -48,6 +55,13 @@ dag = DAG('Capstone_DWH_Dag',
 start_operator = DummyOperator(task_id='Begin_execution', dag=dag)
 end_operator = DummyOperator(task_id='End_execution', dag=dag)
 
+print_val = PythonOperator(
+    task_id='Printing',
+    python_callable=print_month_date,
+    dag=dag
+)
+
+'''
 i94_meta_data_S3Check = S3DataCheckOperator(
     task_id="i94_data_check",
     aws_conn_id='aws_credentials',
@@ -92,8 +106,11 @@ demographics_data_S3Check = S3DataCheckOperator(
     prefix=PARAMS['DEMOGRAPHICS_DATA_LOC'],
     file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
     dag=dag)
-
-
+    
 start_operator >> [i94_meta_data_S3Check, i94_sas_data_S3Check,
                    visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check]
+'''
+
+start_operator >> print_val >> end_operator
+
 

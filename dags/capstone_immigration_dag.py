@@ -3,6 +3,7 @@ from configparser import ConfigParser
 from lib.emr_cluster_provider import *
 from lib.emr_session_provider import *
 # airflow
+from datetime import datetime
 from airflow import DAG
 from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.operators.dummy_operator import DummyOperator
