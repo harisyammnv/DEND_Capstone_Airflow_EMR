@@ -7,8 +7,8 @@ import os
 class S3DataCheckOperator(BaseOperator):
 
     @apply_defaults
-    def __init__(self, aws_conn_id='', region='',
-                 bucket='', prefix='', file_list=None, wild_card_extension='', *args, **kwargs):
+    def __init__(self, aws_conn_id="", region=None,
+                 bucket=None, prefix=None, file_list=None, wild_card_extension=None, *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
@@ -34,7 +34,7 @@ class S3DataCheckOperator(BaseOperator):
         else:
             raise FileNotFoundError("Prefix - {} not found in S3 Bucket - {}".format(self.prefix, self.bucket_name))
 
-        if self.wild_card_extension == '' and len(self.file_list)>0:
+        if self.wild_card_extension is None and len(self.file_list)>0:
             for file in self.file_list:
                 if s3_hook.check_for_key(key = os.path.join(self.prefix.lstrip('/'), file), bucket_name=self.bucket_name):
                     self.log.info("File - {} exists in S3 Bucket - {}/{}".format(file, self.bucket_name, self.prefix.lstrip('/')))
@@ -43,7 +43,7 @@ class S3DataCheckOperator(BaseOperator):
         else:
             raise ValueError("File list has to be provided if the there is no wild card extension")
 
-        if self.wild_card_extension!='':
+        if self.wild_card_extension is not None:
             full_key = os.path.join(self.prefix, self.wild_card_extension)
             success = s3_hook.check_for_wildcard_key(wildcard_key=full_key,
                                                      bucket_name=self.bucket_name,
