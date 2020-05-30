@@ -82,7 +82,7 @@ def sas_labels_to_csv(*args, **kwargs):
 
     for key in df_dict.keys():
         logging.info("Writing {} Table to Final S3 Bucket".format(key))
-        with s3.open(r"{}/raw/i94_meta_data/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], key), "wb") as f:
+        with s3.open(r"{}/raw/{}/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], PARAMS['SAS_LABELS_DATA_LOC'], key), "wb") as f:
             df_dict[key].to_csv(f, index=False)
 
 
@@ -173,7 +173,7 @@ visa_data_S3Check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['VISA_DATA_LOC'],
+    prefix=PARAMS['VISA_DATA_LOC'].lstrip("/"),
     file_list=['visa-type.csv', 'visa-issuing-ports.csv'],
     dag=dag)
 
@@ -190,7 +190,7 @@ i94_data_S3Check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['SAS_LABELS_DATA_LOC'],
+    prefix=PARAMS['SAS_LABELS_DATA_LOC'].lstrip("/"),
     file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
     dag=dag)
 
@@ -207,7 +207,7 @@ demographics_data_S3Check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['DEMOGRAPHICS_DATA_LOC'],
+    prefix=PARAMS['DEMOGRAPHICS_DATA_LOC'].lstrip("/"),
     file_list=['us-cities-demographics.csv'],
     dag=dag)
 
@@ -224,7 +224,7 @@ codes_data_S3Check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['CODES_DATA_LOC'],
+    prefix=PARAMS['CODES_DATA_LOC'].lstrip("/"),
     file_list=['nationality-codes.csv', 'port-of-entry-codes.csv','airport-codes.csv','airlines-codes.csv'],
     dag=dag)
 

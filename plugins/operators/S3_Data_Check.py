@@ -36,8 +36,8 @@ class S3DataCheckOperator(BaseOperator):
 
         if self.wild_card_extension is None and len(self.file_list)>0:
             for file in self.file_list:
-                if s3_hook.check_for_key(key = os.path.join(self.prefix.lstrip('/'), file), bucket_name=self.bucket_name):
-                    self.log.info("File - {} exists in S3 Bucket - {}/{}".format(file, self.bucket_name, self.prefix.lstrip('/')))
+                if s3_hook.check_for_key(key=os.path.join(self.prefix, file), bucket_name=self.bucket_name):
+                    self.log.info("File - {} exists in S3 Bucket - {}/{}".format(file, self.bucket_name, self.prefix))
                 else:
                     raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(file, self.bucket_name))
         else:
