@@ -13,7 +13,7 @@ from airflow.contrib.operators.emr_create_job_flow_operator import EmrCreateJobF
 from airflow.contrib.operators.emr_add_steps_operator import EmrAddStepsOperator
 from airflow.contrib.sensors.emr_step_sensor import EmrStepSensor
 from airflow.contrib.operators.emr_terminate_job_flow_operator import EmrTerminateJobFlowOperator
-from plugins.operators.S3_Data_Check import S3DataCheckOperator
+from airflow.operators.capstone_plugin import S3DataCheckOperator
 
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
