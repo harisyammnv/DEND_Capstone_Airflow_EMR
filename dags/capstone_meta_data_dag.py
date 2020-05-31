@@ -237,9 +237,18 @@ transform_codes = PythonOperator(
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
 
+data_quality = PythonOperator(
+    task_id='data_quality_check',
+    python_callable=submit_transform,
+    params={"file" : '/root/airflow/dags/transforms/data_lake_quality_check.py', "log":False,
+            "args":["--data={}".format(PARAMS['FINAL_DATA_BUCKET']),
+                    "--livy_session={}".format("Yes")]},
+    dag=dag)
+
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion
 chain(wait_for_cluster_completion,
 [visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check, i94_data_S3Check],
-[transform_visa, transform_demographics, transform_codes, transform_i94],terminate_cluster)
+[transform_visa, transform_demographics, transform_codes, transform_i94],data_quality)
+data_quality >> terminate_cluster
 terminate_cluster >> finish_operator

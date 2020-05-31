@@ -86,7 +86,8 @@ def main():
                          .load('s3://{}/raw/i94_immigration_data/i94_{}_sub.sas7bdat'.format(input_bucket, data_month+data_year))\
                          .withColumn("arrival_date", udf_to_datetime_sas("arrdate"))\
                          .withColumn("departure_date", udf_to_datetime_sas("depdate"))\
-                         .withColumn("departure_deadline", to_datetime_frm_str("dtaddto"))
+                         .withColumn("departure_deadline", to_datetime_frm_str("dtaddto")) \
+                         .withColumn("month_year", F.lit(data_month+'_'+data_year))
 
     immigration_df = immigration.drop('validres','delete_days','delete_mexl','delete_dup','delete_recdup','delete_visa',
                                       'arrdate','dtadfile', 'occup', 'entdepa', 'entdepd', 'entdepu')
@@ -95,13 +96,13 @@ def main():
                    'cast(i94res as int)','i94port','arrival_date','cast(i94mode as int)',
                    'i94addr','departure_date','departure_deadline','cast(i94bir as int)','cast(i94visa as int)',
                    'cast(count as int)','visapost','matflag','cast(biryear as int)',
-                   'gender','insnum','airline','cast(admnum as float)','fltno','visatype']
+                   'gender','insnum','airline','cast(admnum as float)','fltno','visatype',"month_year"]
 
     schema_columns = ['cicid','entry_year','entry_month','country_id','res_id','port_id','arrival_date',
                       'mode_id','state_code','departure_date','departure_deadline','age','visa_reason_id','count','visa_post',
-                      'matched_flag','birth_year','gender','ins_num','airline_abbr','admission_num','flight_no','visa_type']
+                      'matched_flag','birth_year','gender','ins_num','airline_abbr','admission_num','flight_no','visa_type','month_year']
 
     immigration_df = immigration_df.selectExpr(create_cast_select_exprs(sas_columns,schema_columns))
 
-    immigration_df.write.partitionBy("entry_year","entry_month").mode("append").\
-        parquet("s3://{}/lake/immigrantion/".format(output_bucket))
+    immigration_df.write.partitionBy("month_year").mode("append").\
+        parquet("s3://{}/lake/immigration/".format(output_bucket))

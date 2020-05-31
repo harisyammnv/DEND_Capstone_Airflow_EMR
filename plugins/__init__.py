@@ -11,4 +11,5 @@ class CapstonePlugin(AirflowPlugin):
     name = "capstone_plugin"
     operators = [
         operators.S3DataCheckOperator,
+        operators.EmrAddStepsOperatorV2
     ]
