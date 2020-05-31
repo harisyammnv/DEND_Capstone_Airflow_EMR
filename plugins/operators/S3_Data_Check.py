@@ -9,7 +9,8 @@ class S3DataCheckOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, aws_conn_id="", region=None,
-                 bucket=None, prefix=None, file_list=None, file_name=None, wild_card_extension=None, *args, **kwargs):
+                 bucket=None, prefix=None, file_list=None, file_name=None,
+                 wild_card_extension=None, *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
         self.aws_conn_id = aws_conn_id
@@ -23,7 +24,6 @@ class S3DataCheckOperator(BaseOperator):
     def execute(self, context):
 
         s3_hook = S3Hook(aws_conn_id=self.aws_conn_id)
-
         exists = s3_hook.check_for_bucket(self.bucket_name)
         if exists:
             self.log.info("S3 Bucket - {} exists".format(self.bucket_name))
@@ -36,12 +36,17 @@ class S3DataCheckOperator(BaseOperator):
         else:
             raise FileNotFoundError("Prefix - {} not found in S3 Bucket - {}".format(self.prefix, self.bucket_name))
 
-        if self.wild_card_extension is None and len(self.file_list)>0:
+        if self.wild_card_extension is None and self.file_list is not None:
             for file in self.file_list:
                 if s3_hook.check_for_key(key=os.path.join(self.prefix, file), bucket_name=self.bucket_name):
                     self.log.info("File - {} exists in S3 Bucket - {}/{}".format(file, self.bucket_name, self.prefix))
                 else:
                     raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(file, self.bucket_name))
+        elif self.wild_card_extension is None and self.file_name is not None and self.file_list is None:
+            if s3_hook.check_for_key(key=os.path.join(self.prefix, self.file_name), bucket_name=self.bucket_name):
+                self.log.info("File - {} exists in S3 Bucket - {}/{}".format(self.file_name, self.bucket_name, self.prefix))
+            else:
+                raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(self.file_name, self.bucket_name))
         else:
             raise ValueError("File list has to be provided if the there is no wild card extension")
 

@@ -135,6 +135,7 @@ finish_operator = DummyOperator(task_id='End_Immigration_Transform',  dag=dag)
 create_step_template = PythonOperator(
     task_id='create_emr_step_template',
     python_callable=create_step_params,
+    op_kwargs={'input_bucket': PARAMS['RAW_DATA_BUCKET'], 'output_bucket': PARAMS['FINAL_DATA_BUCKET']},
     provide_context=True,
     dag=dag
 )
@@ -144,8 +145,9 @@ immigration_data_check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['I94_RAW_DATA_LOC'],
-    file_name="i94_{{ task_instance.xcom_pull('create_step_template') }}_sub.sas7bdat",
+    prefix=PARAMS['I94_RAW_DATA_LOC'].lstrip("/"),
+    file_name="i94_{{ task_instance.xcom_pull('create_emr_step_template', key='return_value')['month'] }}{{ task_instance.xcom_pull('create_emr_step_template', key='return_value')['year'] }}_sub.sas7bdat",
+    provide_context=True,
     dag=dag)
 
 cluster_creator = EmrCreateJobFlowOperator(
@@ -160,7 +162,7 @@ add_step_task = EmrAddStepsOperator(
     task_id='add_step',
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
     aws_conn_id='aws_credentials',
-    steps=TRANSFORM_IMMIGRATION_SAS_DATA,
+    steps="{{ task_instance.xcom_pull('create_emr_step_template', key='return_value')['STEP_PARAMS'] }}",
     dag=dag
 )
 

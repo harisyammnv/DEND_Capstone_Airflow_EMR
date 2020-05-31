@@ -18,6 +18,7 @@ credentials = aws_hook.get_credentials()
 PARAMS = {'aws_access_key': credentials.access_key,
           'aws_secret': credentials.secret_key,
           'FINAL_DATA_BUCKET' : config.get('S3', 'FINAL_DATA_BUCKET'),
+          'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'VISA_DATA_LOC' : config.get('S3', 'VISA_DATA'),
           'CODES_DATA_LOC' : config.get('S3','CODES_DATA'),
           'I94_RAW_DATA_LOC' : config.get('S3','I94_RAW_DATA'),
@@ -31,11 +32,11 @@ default_args = {
     'start_date': datetime(2016, 4, 1),
     'end_date': datetime(2016, 5, 1),
     'email_on_retry': False,
-    'retries': 3,
+    'retries': 0,
     'catchup': False,
-    'retry_delay': timedelta(minutes=5),
     'depends_on_past': True,
-    'wait_for_downstream': True
+    'wait_for_downstream': True,
+    'provide_context':True,
 }
 
 
@@ -43,12 +44,11 @@ default_args = {
 dag = DAG('Capstone_DWH_Dag',
           default_args=default_args,
           description='Data Engineering Capstone DWH',
-          schedule_interval='@daily'
+          schedule_interval='@monthly'
           )
 
-start_operator = DummyOperator(task_id='Begin_execution', dag=dag)
-end_operator = DummyOperator(task_id='End_execution', dag=dag)
-
+start_operator = DummyOperator(task_id='Begin_ETL',  dag=dag)
+finish_operator = DummyOperator(task_id='End_ETL',  dag=dag)
 
 i94_meta_data_S3Check = S3DataCheckOperator(
     task_id="i94_data_check",
@@ -56,7 +56,7 @@ i94_meta_data_S3Check = S3DataCheckOperator(
     region=PARAMS['REGION'],
     bucket=PARAMS['FINAL_DATA_BUCKET'],
     prefix=PARAMS['SAS_LABELS_DATA_LOC'],
-    file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
+    wild_card_extension='*.parquet',
     dag=dag)
 
 codes_data_S3Check = S3DataCheckOperator(
@@ -74,7 +74,7 @@ i94_sas_data_S3Check = S3DataCheckOperator(
     region=PARAMS['REGION'],
     bucket=PARAMS['FINAL_DATA_BUCKET'],
     prefix=PARAMS['I94_RAW_DATA_LOC'],
-    file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
+    wild_card_extension='*.parquet',
     dag=dag)
 
 visa_data_S3Check = S3DataCheckOperator(
@@ -83,7 +83,7 @@ visa_data_S3Check = S3DataCheckOperator(
     region=PARAMS['REGION'],
     bucket=PARAMS['FINAL_DATA_BUCKET'],
     prefix=PARAMS['VISA_DATA_LOC'],
-    file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
+    wild_card_extension='*.parquet',
     dag=dag)
 
 demographics_data_S3Check = S3DataCheckOperator(
@@ -92,10 +92,12 @@ demographics_data_S3Check = S3DataCheckOperator(
     region=PARAMS['REGION'],
     bucket=PARAMS['FINAL_DATA_BUCKET'],
     prefix=PARAMS['DEMOGRAPHICS_DATA_LOC'],
-    file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
+    wild_card_extension='*.parquet',
     dag=dag)
     
 start_operator >> [i94_meta_data_S3Check, i94_sas_data_S3Check,
                    visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check]
+[i94_meta_data_S3Check, i94_sas_data_S3Check,
+                   visa_data_S3Check, demographics_data_S3Check, codes_data_S3Check] >> finish_operator
 
 
