@@ -9,7 +9,7 @@ import sys
 import argparse
 
 
-def create_spark_session(app_name='usvisitors_fact'):
+def create_spark_session(app_name='immigration_transform'):
     """Creates the spark session"""
     spark = SparkSession\
     .builder\

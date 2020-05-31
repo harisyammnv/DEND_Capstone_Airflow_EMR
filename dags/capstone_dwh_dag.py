@@ -36,19 +36,19 @@ default_args = {
     'catchup': False,
     'depends_on_past': True,
     'wait_for_downstream': True,
-    'provide_context':True,
+    'provide_context': True,
 }
 
 
 # dag is complete
-dag = DAG('Capstone_DWH_Dag',
+dag = DAG('capstone_DWH_dag',
           default_args=default_args,
           description='Data Engineering Capstone DWH',
           schedule_interval='@monthly'
           )
 
-start_operator = DummyOperator(task_id='Begin_ETL',  dag=dag)
-finish_operator = DummyOperator(task_id='End_ETL',  dag=dag)
+start_operator = DummyOperator(task_id='begin_ETL',  dag=dag)
+finish_operator = DummyOperator(task_id='end_ETL',  dag=dag)
 
 i94_meta_data_S3Check = S3DataCheckOperator(
     task_id="i94_data_check",

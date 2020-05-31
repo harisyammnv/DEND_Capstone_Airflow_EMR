@@ -33,16 +33,6 @@ PARAMS = {'aws_access_key': credentials.access_key,
           }
 
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2016, 4, 1),
-    'end_date': datetime(2016, 5, 1),
-    'retries': 0,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'provide_context': True
-}
 
 JOB_FLOW = {
     'Name' : 'sas-immigration',
@@ -122,14 +112,26 @@ def create_step_params(**kwargs):
     return result
 
 
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2016, 4, 1),
+    'end_date': datetime(2016, 5, 1),
+    'retries': 0,
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'provide_context': True
+}
+
+
 dag = DAG('immigration_transform_Dag',
           default_args=default_args,
           description='Transform Immigration data in EMR with Airflow',
-          schedule_interval=None,
+          schedule_interval='@monthly',
         )
 
-start_operator = DummyOperator(task_id='Begin_Immigration_Transform',  dag=dag)
-finish_operator = DummyOperator(task_id='End_Immigration_Transform',  dag=dag)
+start_operator = DummyOperator(task_id='begin_immigration_transform',  dag=dag)
+finish_operator = DummyOperator(task_id='end_immigration_transform',  dag=dag)
 
 
 create_step_template = PythonOperator(
@@ -181,7 +183,7 @@ terminate_job_flow_task = EmrTerminateJobFlowOperator(
     trigger_rule="all_done",
     dag=dag
 )
-start_operator >> immigration_data_check
+start_operator >> create_step_template >> immigration_data_check
 immigration_data_check >> cluster_creator
 cluster_creator >> add_step_task
 add_step_task >> watch_prev_step_task
