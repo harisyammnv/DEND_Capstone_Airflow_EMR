@@ -160,11 +160,12 @@ cluster_creator = EmrCreateJobFlowOperator(
     dag=dag
 )
 
-add_step_task = EmrAddStepsOperator(
+add_step_task = EmrAddStepsOperatorV2(
     task_id='add_step',
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
     aws_conn_id='aws_default',
     steps=TRANSFORM_IMMIGRATION_SAS_DATA,
+    region_name=PARAMS['REGION'],
     dag=dag
 )
 
