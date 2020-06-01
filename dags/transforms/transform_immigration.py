@@ -47,7 +47,7 @@ udf_to_datetime_frm_str = udf(lambda x: to_datetime_frm_str(x), DateType())
 udf_to_datetime_sas = udf(lambda x: to_datetime(x), DateType())
 
 
-def create_cast_select_exprs(sas_cols: list, schema_cols: list) -> list:
+def create_cast_select_exprs(sas_cols, schema_cols):
     if sas_cols != '':
         exprs = ["{} AS {}".format(dfc,sc) for dfc, sc in zip(sas_cols, schema_cols)]
     else:
