@@ -28,7 +28,7 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'VISA_DATA_LOC' : config.get('S3', 'VISA_DATA'),
           'CODES_DATA_LOC' : config.get('S3','CODES_DATA'),
-          'SAS_LABELS_DATA_LOC' : config.get('S3','SAS_LABELS_DATA'),
+          'I94_META_DATA_LOC' : config.get('S3','I94_META_DATA'),
           'DEMOGRAPHICS_DATA_LOC' : config.get('S3','DEMOGRAPHICS_DATA'),
           'REGION': config.get('AWS','REGION'),
           'EC2_KEY_PAIR': config.get('AWS','AWS_EC2_KEY_PAIR')
@@ -83,7 +83,7 @@ def sas_labels_to_csv(*args, **kwargs):
 
     for key in df_dict.keys():
         logging.info("Writing {} Table to Final S3 Bucket".format(key))
-        with s3.open(r"{}/raw/{}/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], PARAMS['SAS_LABELS_DATA_LOC'], key), "wb") as f:
+        with s3.open(r"{}/raw/{}/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], PARAMS['I94_META_DATA_LOC'], key), "wb") as f:
             df_dict[key].to_csv(f, index=False)
 
 
@@ -191,7 +191,7 @@ i94_data_S3Check = S3DataCheckOperator(
     aws_conn_id='aws_credentials',
     region=PARAMS['REGION'],
     bucket=PARAMS['RAW_DATA_BUCKET'],
-    prefix=PARAMS['SAS_LABELS_DATA_LOC'].lstrip("/"),
+    prefix=PARAMS['I94_META_DATA_LOC'].lstrip("/"),
     file_list=['i94addr.csv', 'i94cit_i94res.csv','i94mode.csv','i94port_i94code.csv','i94visa.csv'],
     dag=dag)
 
