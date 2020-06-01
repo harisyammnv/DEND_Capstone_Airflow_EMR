@@ -183,6 +183,7 @@ terminate_job_flow_task = EmrTerminateJobFlowOperator(
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
     aws_conn_id='aws_default',
     trigger_rule="all_done",
+    region_name=PARAMS['REGION'],
     dag=dag
 )
 start_operator >> immigration_data_check  # create_step_template
