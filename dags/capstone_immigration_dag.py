@@ -103,7 +103,7 @@ default_args = {
 dag = DAG('immigration_transform_Dag',
           default_args=default_args,
           description='Transform Immigration data in EMR with Airflow',
-          schedule_interval='@monthly',
+          schedule_interval='@monthly',max_active_runs=1
         )
 
 start_operator = DummyOperator(task_id='begin_immigration_transform',  dag=dag)
@@ -174,6 +174,7 @@ watch_prev_step_task = EmrStepSensor(
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
     step_id="{{ task_instance.xcom_pull('add_step', key='return_value')[0] }}",
     aws_conn_id='aws_default',
+    region_name=PARAMS['REGION'],
     dag=dag
 )
 

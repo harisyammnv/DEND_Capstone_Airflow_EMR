@@ -106,3 +106,7 @@ def main():
 
     immigration_df.write.partitionBy("month_year").mode("append").\
         parquet("s3://{}/lake/immigration/".format(output_bucket))
+
+
+if __name__ == "__main__":
+    main()
