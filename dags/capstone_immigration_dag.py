@@ -154,15 +154,16 @@ immigration_data_check = S3DataCheckOperator(
 cluster_creator = EmrCreateJobFlowOperator(
     task_id='create_job_flow',
     job_flow_overrides=JOB_FLOW,
-    aws_conn_id='aws_credentials',
+    aws_conn_id='aws_default',
     emr_conn_id='emr_default',
+    region_name=PARAMS['REGION'],
     dag=dag
 )
 
 add_step_task = EmrAddStepsOperator(
     task_id='add_step',
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
-    aws_conn_id='aws_credentials',
+    aws_conn_id='aws_default',
     steps=TRANSFORM_IMMIGRATION_SAS_DATA,
     dag=dag
 )
@@ -171,14 +172,14 @@ watch_prev_step_task = EmrStepSensor(
     task_id='watch_prev_step',
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
     step_id="{{ task_instance.xcom_pull('add_step', key='return_value')[0] }}",
-    aws_conn_id='aws_credentials',
+    aws_conn_id='aws_default',
     dag=dag
 )
 
 terminate_job_flow_task = EmrTerminateJobFlowOperator(
     task_id='terminate_job_flow',
     job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
-    aws_conn_id='aws_credentials',
+    aws_conn_id='aws_default',
     trigger_rule="all_done",
     dag=dag
 )
