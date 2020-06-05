@@ -21,8 +21,8 @@ DEMOGRAPHICS_DATA_LOC = config.get('S3','DEMOGRAPHICS_DATA')
 PYTHON_APPS = config.get('S3','PYTHON_APPS')
 AWS_EMR = config.get('S3','AWS_EMR_SH')
 
-create_stack = False
-upload_files = True
+create_stack = True
+upload_files = False
 sas_data_upload = False
 
 if create_stack:
