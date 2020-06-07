@@ -231,7 +231,7 @@ watch_prev_data_check_task = EmrStepSensor(
 
 terminate_job_flow_task = EmrTerminateJobFlowOperator(
     task_id='terminate_job_flow',
-    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
+    job_flow_id="{{ task_instance.xcom_pull('create_immigration_job', key='return_value') }}",
     aws_conn_id='aws_default',
     trigger_rule="all_done",
     region_name=PARAMS['REGION'],
