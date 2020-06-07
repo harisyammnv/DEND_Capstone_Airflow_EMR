@@ -2,6 +2,8 @@ import logging
 from configparser import ConfigParser
 from lib.emr_cluster_provider import *
 from lib.emr_session_provider import *
+import boto3
+import os
 # airflow
 from datetime import datetime
 from airflow import DAG
@@ -22,6 +24,9 @@ config.read('./plugins/helpers/dwh_airflow.cfg')
 aws_hook = AwsHook('aws_credentials')
 credentials = aws_hook.get_credentials()
 
+os.environ['AWS_PROFILE'] = "Profile1"
+os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
+
 
 PARAMS = {'aws_access_key': credentials.access_key,
           'aws_secret': credentials.secret_key,
@@ -29,8 +34,17 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'RAW_DATA_BUCKET' : config.get('S3', 'RAW_DATA_BUCKET'),
           'I94_RAW_DATA_LOC' : config.get('S3','I94_RAW_DATA'),
           'REGION': config.get('AWS','REGION'),
+          'PYTHON_APPS': config.get('S3','PYTHON_APPS'),
           'EC2_KEY_PAIR': config.get('AWS','AWS_EC2_KEY_PAIR')
           }
+
+
+def upload_transform_script(**kwargs):
+    s3_client = boto3.client('s3', region_name=kwargs['region'],
+                             aws_access_key_id=kwargs['aws_access_key'],
+                             aws_secret_access_key=kwargs['aws_secret'])
+    s3_client.upload_file("dags/transforms/transform_immigration.py", kwargs['bucket'], kwargs['file_path'] + "transform_immigration.py")
+
 
 JOB_FLOW = {
     'Name' : 'sas-immigration',
@@ -81,13 +95,6 @@ JOB_FLOW = {
 }
 
 
-# def create_step_params(**kwargs):
-#    exec_month = kwargs['execution_date'].strftime("%b").lower()
-#    exec_year = kwargs['execution_date'].strftime("%y")
-#    result = {'month': exec_month, 'year': exec_year}
-#    return result
-
-
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -103,8 +110,7 @@ default_args = {
 dag = DAG('immigration_transform_Dag',
           default_args=default_args,
           description='Transform Immigration data in EMR with Airflow',
-          schedule_interval='@monthly',max_active_runs=1
-        )
+          schedule_interval='@monthly', max_active_runs=1)
 
 start_operator = DummyOperator(task_id='begin_immigration_transform',  dag=dag)
 finish_operator = DummyOperator(task_id='end_immigration_transform',  dag=dag)
@@ -117,6 +123,8 @@ TRANSFORM_IMMIGRATION_SAS_DATA = [
             'Jar': 'command-runner.jar',
             'Args': [
                 'spark-submit',
+                '--packages',
+                'saurfang:spark-sas7bdat:2.0.0-s_2.10',
                 '--deploy-mode',
                 'client',
                 '--master',
@@ -131,15 +139,29 @@ TRANSFORM_IMMIGRATION_SAS_DATA = [
     }
 ]
 
-#create_step_template = PythonOperator(
-#    task_id='create_emr_step_template',
-#    python_callable=create_step_params,
-#    op_kwargs={'input_bucket': PARAMS['RAW_DATA_BUCKET'], 'output_bucket': PARAMS['FINAL_DATA_BUCKET']},
-#    provide_context=True,
-#    dag=dag
-#)
-# "i94_{{ task_instance.xcom_pull('create_emr_step_template', key='return_value')['month'] }}{{ task_instance.xcom_pull('create_emr_step_template', key='return_value')['year'] }}_sub.sas7bdat"
-
+DATA_QUALITY_SAS_DATA = [
+    {
+        'Name': 'sas_i94_data_quality',
+        'ActionOnFailure': 'CONTINUE',
+        'HadoopJarStep': {
+            'Jar': 'command-runner.jar',
+            'Args': [
+                'spark-submit',
+                '--packages',
+                'saurfang:spark-sas7bdat:2.0.0-s_2.10',
+                '--deploy-mode',
+                'client',
+                '--master',
+                'yarn',
+                '/home/hadoop/python_apps/transform_immigration.py',
+                '--data', PARAMS['FINAL_DATA_BUCKET'],
+                '--livy_session', "No",
+                '--month', "{{ execution_date.strftime('%b').lower() }}",
+                '--year', "{{ execution_date.strftime('%y') }}"
+            ]
+        }
+    }
+]
 
 immigration_data_check = S3DataCheckOperator(
     task_id="immigration_data_check",
@@ -151,8 +173,17 @@ immigration_data_check = S3DataCheckOperator(
     provide_context=True,
     dag=dag)
 
+transform_script_upload = PythonOperator(
+    task_id='S3_upload_transform_script',
+    python_callable=upload_transform_script,
+    provide_context=True,
+    op_kwargs={'region':PARAMS['REGION'], 'aws_access_key':PARAMS['aws_access_key'],'aws_secret':PARAMS['aws_secret'],
+               'bucket': PARAMS['RAW_DATA_BUCKET'],'file_path':PARAMS['PYTHON_APPS']},
+    dag=dag)
+
+
 cluster_creator = EmrCreateJobFlowOperator(
-    task_id='create_job_flow',
+    task_id='create_immigration_job',
     job_flow_overrides=JOB_FLOW,
     aws_conn_id='aws_default',
     emr_conn_id='emr_default',
@@ -160,19 +191,37 @@ cluster_creator = EmrCreateJobFlowOperator(
     dag=dag
 )
 
-add_step_task = EmrAddStepsOperatorV2(
-    task_id='add_step',
-    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
+add_transform_step_task = EmrAddStepsOperatorV2(
+    task_id='add_transform_step',
+    job_flow_id="{{ task_instance.xcom_pull('create_immigration_job', key='return_value') }}",
     aws_conn_id='aws_default',
     steps=TRANSFORM_IMMIGRATION_SAS_DATA,
     region_name=PARAMS['REGION'],
     dag=dag
 )
 
-watch_prev_step_task = EmrStepSensor(
-    task_id='watch_prev_step',
-    job_flow_id="{{ task_instance.xcom_pull('create_job_flow', key='return_value') }}",
-    step_id="{{ task_instance.xcom_pull('add_step', key='return_value')[0] }}",
+watch_immigration_transform_task = EmrStepSensor(
+    task_id='watch_immigration_transform',
+    job_flow_id="{{ task_instance.xcom_pull('create_immigration_job', key='return_value') }}",
+    step_id="{{ task_instance.xcom_pull('add_transform_step', key='return_value')[0] }}",
+    aws_conn_id='aws_default',
+    region_name=PARAMS['REGION'],
+    dag=dag
+)
+
+add_data_quality_check_task = EmrAddStepsOperatorV2(
+    task_id='data_quality_check',
+    job_flow_id="{{ task_instance.xcom_pull('create_immigration_job', key='return_value') }}",
+    aws_conn_id='aws_default',
+    steps=DATA_QUALITY_SAS_DATA,
+    region_name=PARAMS['REGION'],
+    dag=dag
+)
+
+watch_prev_data_check_task = EmrStepSensor(
+    task_id='watch_data_quality_check',
+    job_flow_id="{{ task_instance.xcom_pull('create_immigration_job', key='return_value') }}",
+    step_id="{{ task_instance.xcom_pull('data_quality_check', key='return_value')[0] }}",
     aws_conn_id='aws_default',
     region_name=PARAMS['REGION'],
     dag=dag
@@ -186,11 +235,11 @@ terminate_job_flow_task = EmrTerminateJobFlowOperator(
     region_name=PARAMS['REGION'],
     dag=dag
 )
-start_operator >> immigration_data_check  # create_step_template
-immigration_data_check >> cluster_creator
-cluster_creator >> add_step_task
-add_step_task >> watch_prev_step_task
-watch_prev_step_task >> terminate_job_flow_task
+
+start_operator >> immigration_data_check
+immigration_data_check >> transform_script_upload >> cluster_creator
+cluster_creator >> add_transform_step_task >> watch_immigration_transform_task
+add_data_quality_check_task >> watch_immigration_transform_task >> terminate_job_flow_task
 terminate_job_flow_task >> finish_operator
 
 '''

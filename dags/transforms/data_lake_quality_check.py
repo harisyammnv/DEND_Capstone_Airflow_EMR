@@ -18,11 +18,11 @@ def check_data_quality_livy(path, table, logger):
         raise ValueError("Data Quality Check not passed")
 
 
-def create_spark_session(app_name='immigration_transform'):
+def create_spark_session(app_name='immigration_data_check'):
     """Creates the spark session"""
     spark = SparkSession\
     .builder\
-    .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:2.7.0") \
+    .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.0.0-s_2.11,org.apache.hadoop:hadoop-aws:2.7.0") \
     .appName(app_name)\
     .getOrCreate()
     return spark
@@ -37,7 +37,6 @@ def create_logger(spark):
     return logger
 
 
-#def main():
 parser = argparse.ArgumentParser(description='Argument Usage')
 parser.add_argument("--data", help="Location for S3 Data Bucket")
 parser.add_argument("--livy_session", help="Calling the script using Livy REST [Yes/No]")
