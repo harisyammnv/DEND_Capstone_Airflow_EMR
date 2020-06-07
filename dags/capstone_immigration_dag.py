@@ -177,7 +177,7 @@ immigration_data_check = S3DataCheckOperator(
 
 transform_script_upload = PythonOperator(
     task_id='S3_upload_transform_script',
-    python_callable=upload_transform_script,
+    python_callable=upload_scripts,
     provide_context=True,
     op_kwargs={'region':PARAMS['REGION'], 'aws_access_key':PARAMS['aws_access_key'],'aws_secret':PARAMS['aws_secret'],
                'bucket': PARAMS['RAW_DATA_BUCKET'],'file_path':PARAMS['PYTHON_APPS']},
