@@ -44,7 +44,7 @@ def upload_scripts(**kwargs):
                              aws_access_key_id=kwargs['aws_access_key'],
                              aws_secret_access_key=kwargs['aws_secret'])
     s3_client.upload_file("dags/transforms/transform_immigration.py", kwargs['bucket'], kwargs['file_path'] + "transform_immigration.py")
-    s3_client.upload_file("dags/transforms/transform_immigration.py", kwargs['bucket'],
+    s3_client.upload_file("dags/transforms/data_lake_quality_check.py", kwargs['bucket'],
                           kwargs['file_path'] + "data_lake_quality_check.py")
 
 
