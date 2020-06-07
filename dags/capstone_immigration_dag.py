@@ -239,7 +239,7 @@ terminate_job_flow_task = EmrTerminateJobFlowOperator(
 start_operator >> immigration_data_check
 immigration_data_check >> transform_script_upload >> cluster_creator
 cluster_creator >> add_transform_step_task >> watch_immigration_transform_task
-add_data_quality_check_task >> watch_immigration_transform_task >> terminate_job_flow_task
+watch_immigration_transform_task >> add_data_quality_check_task >> watch_prev_data_check_task >> terminate_job_flow_task
 terminate_job_flow_task >> finish_operator
 
 '''
