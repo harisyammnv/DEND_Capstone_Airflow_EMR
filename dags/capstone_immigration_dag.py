@@ -39,11 +39,13 @@ PARAMS = {'aws_access_key': credentials.access_key,
           }
 
 
-def upload_transform_script(**kwargs):
+def upload_scripts(**kwargs):
     s3_client = boto3.client('s3', region_name=kwargs['region'],
                              aws_access_key_id=kwargs['aws_access_key'],
                              aws_secret_access_key=kwargs['aws_secret'])
     s3_client.upload_file("dags/transforms/transform_immigration.py", kwargs['bucket'], kwargs['file_path'] + "transform_immigration.py")
+    s3_client.upload_file("dags/transforms/transform_immigration.py", kwargs['bucket'],
+                          kwargs['file_path'] + "data_lake_quality_check.py")
 
 
 JOB_FLOW = {
@@ -153,7 +155,7 @@ DATA_QUALITY_SAS_DATA = [
                 'client',
                 '--master',
                 'yarn',
-                '/home/hadoop/python_apps/transform_immigration.py',
+                '/home/hadoop/python_apps/data_lake_quality_check.py',
                 '--data', PARAMS['FINAL_DATA_BUCKET'],
                 '--livy_session', "No",
                 '--month', "{{ execution_date.strftime('%b').lower() }}",

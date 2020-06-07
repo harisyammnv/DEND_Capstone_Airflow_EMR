@@ -42,7 +42,7 @@ def sas_labels_to_csv(*args, **kwargs):
                            secret=PARAMS['aws_secret'])
 
     with s3.open(PARAMS['RAW_DATA_BUCKET'] + PARAMS['SAS_LABELS_DATA_LOC'] +
-                 'I94_SAS_Labels_Descriptions.SAS',"rb") as i94_description:
+                 'I94_SAS_Labels_Descriptions.SAS',"r") as i94_description:
         i94_label_content = i94_description.read()
 
     data_dict = {}
@@ -84,7 +84,7 @@ def sas_labels_to_csv(*args, **kwargs):
 
     for key in df_dict.keys():
         logging.info("Writing {} Table to Final S3 Bucket".format(key))
-        with s3.open(r"{}/raw/{}/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], PARAMS['I94_META_DATA_LOC'], key), "wb") as f:
+        with s3.open(r"{}/raw/{}/{}.csv".format(PARAMS['RAW_DATA_BUCKET'], PARAMS['I94_META_DATA_LOC'], key), "w") as f:
             df_dict[key].to_csv(f, index=False)
 
 
