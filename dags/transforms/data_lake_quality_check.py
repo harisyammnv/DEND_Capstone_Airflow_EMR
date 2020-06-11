@@ -71,7 +71,7 @@ else:
     logger = create_logger(spark)
     access_key = args.aws_key
     secret_key = args.aws_secret
-
+    sc = spark.sparkContext
     sc._jsc.hadoopConfiguration().set("fs.s3.awsAccessKeyId", access_key)
     sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", access_key)
     sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", access_key)
