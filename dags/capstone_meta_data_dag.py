@@ -178,12 +178,8 @@ data_quality = PythonOperator(
     python_callable=submit_transform,
     params={"file" : os.path.join(os.getcwd(),'dags/transforms/data_lake_quality_check.py'), "log":False,
             "args":["--data={}".format(PARAMS['FINAL_DATA_BUCKET']),
-                    "--livy_session={}".format("Yes"),
-                    "--aws_key={}".format(PARAMS['aws_access_key']),
-                    "--aws_secret={}".format(PARAMS['aws_secret'])]},
-    dag=dag)
+                    "--livy_session={}".format("Yes")]},dag=dag)
 
-'''
 visa_data_S3Check = S3DataCheckOperator(
     task_id="visa_data_check",
     aws_conn_id='aws_credentials',
@@ -259,7 +255,4 @@ chain(wait_for_cluster_completion,
 [transform_visa, transform_demographics, transform_codes, transform_i94],data_quality)
 data_quality >> terminate_cluster
 terminate_cluster >> finish_operator
-'''
-start_operator >> [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion >> data_quality >> terminate_cluster >> finish_operator
-
 

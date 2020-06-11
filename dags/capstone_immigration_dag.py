@@ -24,8 +24,8 @@ config.read('./plugins/helpers/dwh_airflow.cfg')
 aws_hook = AwsHook('aws_credentials')
 credentials = aws_hook.get_credentials()
 
-os.environ['AWS_PROFILE'] = "Profile1"
-os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
+#os.environ['AWS_PROFILE'] = "Profile1"
+#os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
 
 
 PARAMS = {'aws_access_key': credentials.access_key,

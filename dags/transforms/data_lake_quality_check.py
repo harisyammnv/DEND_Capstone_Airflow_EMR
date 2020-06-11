@@ -69,29 +69,15 @@ if args.livy_session == "No":
         logger.warn("Data Quality check for - {} FAIL".format("immigration_data"))
 else:
     logger = create_logger(spark)
-    access_key = args.aws_key
-    secret_key = args.aws_secret
-    out_bucket = args.data
-    logger.info("access - "+access_key)
-    logger.info("key - "+secret_key)
-    logger.info("s3://{}/lake/codes/country_code/".format(out_bucket))
-
-    sc = spark.sparkContext
-    sc._jsc.hadoopConfiguration().set("fs.s3.awsAccessKeyId", access_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", access_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", access_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3.awsSecretAccessKey", secret_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3n.awsSecretAccessKey", secret_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", secret_key)
-    sc._jsc.hadoopConfiguration().set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
-    sc._jsc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    sc._jsc.hadoopConfiguration().set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
-
+    if args.data:
+        out_bucket = args.data
+    else:
+        out_bucket = 'test-capstone-final'
     check_data_quality_livy("s3://{}/lake/codes/country_code/".format(out_bucket), 'country_code', logger)
     check_data_quality_livy("s3://{}/lake/codes/port-of-entry-codes/".format(out_bucket), 'port-of-entry-codes', logger)
     check_data_quality_livy("s3://{}/lake/codes/airport_codes/".format(out_bucket), 'airport_codes', logger)
     check_data_quality_livy("s3://{}/lake/codes/airline_codes/".format(out_bucket), 'airline_codes', logger)
-    check_data_quality_livy("s3://{}/lake/demographics/".format(args.data), 'demographics', logger)
+    check_data_quality_livy("s3://{}/lake/demographics/".format(out_bucket), 'demographics', logger)
     check_data_quality_livy("s3://{}/lake/i94_meta_data/transportation/".format(out_bucket), 'transportation', logger)
     check_data_quality_livy("s3://{}/lake/i94_meta_data/country_codes/".format(out_bucket), 'country_codes', logger)
     check_data_quality_livy("s3://{}/lake/i94_meta_data/state_codes/".format(out_bucket), 'state_codes', logger)
