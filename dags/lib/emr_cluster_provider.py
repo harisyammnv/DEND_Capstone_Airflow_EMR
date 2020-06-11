@@ -61,8 +61,8 @@ class EMRClusterProvider:
                 'EmrManagedSlaveSecurityGroup': emr_slave_security_group_id
             },
             VisibleToAllUsers=True,
-            JobFlowRole='EMR_EC2_DefaultRole', # 'EmrEc2InstanceProfile'
-            ServiceRole='EMR_DefaultRole', # 'EmrRole'
+            JobFlowRole='EmrEc2InstanceProfile', # 'EMR_EC2_DefaultRole', #
+            ServiceRole='EmrRole', # 'EMR_DefaultRole'
             Applications=[
                 {'Name': 'hadoop'},
                 {'Name': 'spark'},
