@@ -71,6 +71,11 @@ else:
     logger = create_logger(spark)
     access_key = args.aws_key
     secret_key = args.aws_secret
+    out_bucket = args.data
+    logger.info("access - "+access_key)
+    logger.info("key - "+secret_key)
+    logger.info("s3://{}/lake/codes/country_code/".format(out_bucket))
+
     sc = spark.sparkContext
     sc._jsc.hadoopConfiguration().set("fs.s3.awsAccessKeyId", access_key)
     sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", access_key)
@@ -82,7 +87,6 @@ else:
     sc._jsc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     sc._jsc.hadoopConfiguration().set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
 
-    out_bucket = args.data
     check_data_quality_livy("s3://{}/lake/codes/country_code/".format(out_bucket), 'country_code', logger)
     check_data_quality_livy("s3://{}/lake/codes/port-of-entry-codes/".format(out_bucket), 'port-of-entry-codes', logger)
     check_data_quality_livy("s3://{}/lake/codes/airport_codes/".format(out_bucket), 'airport_codes', logger)
