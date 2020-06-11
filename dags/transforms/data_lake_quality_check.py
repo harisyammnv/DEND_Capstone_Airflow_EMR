@@ -40,6 +40,8 @@ def create_logger(spark):
 parser = argparse.ArgumentParser(description='Argument Usage')
 parser.add_argument("--data", help="Location for S3 Data Bucket")
 parser.add_argument("--livy_session", help="Calling the script using Livy REST [Yes/No]")
+parser.add_argument("--aws_key", help="AWS access key needed for S3")
+parser.add_argument("--aws_secret", help="AWS secret key needed for S3")
 parser.add_argument("--month", help="Month indicator for Data in S3")
 parser.add_argument("--year", help="Year indicator for Data in S3")
 args = parser.parse_args()
@@ -67,18 +69,32 @@ if args.livy_session == "No":
         logger.warn("Data Quality check for - {} FAIL".format("immigration_data"))
 else:
     logger = create_logger(spark)
-    check_data_quality_livy("s3://{}/lake/codes/country_code/".format(args.data), 'country_code', logger)
-    check_data_quality_livy("s3://{}/lake/codes/port-of-entry-codes/".format(args.data), 'port-of-entry-codes', logger)
-    check_data_quality_livy("s3://{}/lake/codes/airport_codes/".format(args.data), 'airport_codes', logger)
-    check_data_quality_livy("s3://{}/lake/codes/airline_codes/".format(args.data), 'airline_codes', logger)
+    access_key = args.aws_key
+    secret_key = args.aws_secret
+
+    sc._jsc.hadoopConfiguration().set("fs.s3.awsAccessKeyId", access_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3n.awsAccessKeyId", access_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3a.access.key", access_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3.awsSecretAccessKey", secret_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3n.awsSecretAccessKey", secret_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3a.secret.key", secret_key)
+    sc._jsc.hadoopConfiguration().set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+    sc._jsc.hadoopConfiguration().set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    sc._jsc.hadoopConfiguration().set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
+
+    out_bucket = args.data
+    check_data_quality_livy("s3://{}/lake/codes/country_code/".format(out_bucket), 'country_code', logger)
+    check_data_quality_livy("s3://{}/lake/codes/port-of-entry-codes/".format(out_bucket), 'port-of-entry-codes', logger)
+    check_data_quality_livy("s3://{}/lake/codes/airport_codes/".format(out_bucket), 'airport_codes', logger)
+    check_data_quality_livy("s3://{}/lake/codes/airline_codes/".format(out_bucket), 'airline_codes', logger)
     check_data_quality_livy("s3://{}/lake/demographics/".format(args.data), 'demographics', logger)
-    check_data_quality_livy("s3://{}/lake/i94_meta_data/transportation/".format(args.data), 'transportation', logger)
-    check_data_quality_livy("s3://{}/lake/i94_meta_data/country_codes/".format(args.data), 'country_codes', logger)
-    check_data_quality_livy("s3://{}/lake/i94_meta_data/state_codes/".format(args.data), 'state_codes', logger)
-    check_data_quality_livy("s3://{}/lake/i94_meta_data/port_codes/".format(args.data), 'port_codes', logger)
-    check_data_quality_livy("s3://{}/lake/i94_meta_data/visa/".format(args.data), 'visa', logger)
-    check_data_quality_livy("s3://{}/lake/visa-issue-port/".format(args.data), 'visa-issue-port', logger)
-    check_data_quality_livy("s3://{}/lake/visa-type/".format(args.data), 'visa-type', logger)
+    check_data_quality_livy("s3://{}/lake/i94_meta_data/transportation/".format(out_bucket), 'transportation', logger)
+    check_data_quality_livy("s3://{}/lake/i94_meta_data/country_codes/".format(out_bucket), 'country_codes', logger)
+    check_data_quality_livy("s3://{}/lake/i94_meta_data/state_codes/".format(out_bucket), 'state_codes', logger)
+    check_data_quality_livy("s3://{}/lake/i94_meta_data/port_codes/".format(out_bucket), 'port_codes', logger)
+    check_data_quality_livy("s3://{}/lake/i94_meta_data/visa/".format(out_bucket), 'visa', logger)
+    check_data_quality_livy("s3://{}/lake/visa-issue-port/".format(out_bucket), 'visa-issue-port', logger)
+    check_data_quality_livy("s3://{}/lake/visa-type/".format(out_bucket), 'visa-type', logger)
 
 
 

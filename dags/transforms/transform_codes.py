@@ -76,4 +76,3 @@ airlines = spark.read.format('csv')\
     .withColumnRenamed("COUNTRY / TERRITORY", "origin_country")
 
 airlines.write.mode("overwrite").parquet("s3://{}/lake/codes/airline_codes/".format(output_bucket))
-

@@ -14,6 +14,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow import AirflowException
 from airflow.operators.capstone_plugin import S3DataCheckOperator
 from airflow.utils.helpers import chain
+import os
 from datetime import datetime
 
 config = ConfigParser()
@@ -170,6 +171,19 @@ task_write_sas_codes_to_s3 = PythonOperator(
     python_callable=sas_labels_to_csv,
     dag=dag
 )
+
+
+data_quality = PythonOperator(
+    task_id='data_quality_check',
+    python_callable=submit_transform,
+    params={"file" : os.path.join(os.getcwd(),'dags/transforms/data_lake_quality_check.py'), "log":False,
+            "args":["--data={}".format(PARAMS['FINAL_DATA_BUCKET']),
+                    "--livy_session={}".format("Yes"),
+                    "--aws_key={}".format(PARAMS['aws_access_key']),
+                    "--aws_secret={}".format(PARAMS['aws_secret'])]},
+    dag=dag)
+
+'''
 visa_data_S3Check = S3DataCheckOperator(
     task_id="visa_data_check",
     aws_conn_id='aws_credentials',
@@ -182,7 +196,7 @@ visa_data_S3Check = S3DataCheckOperator(
 transform_visa = PythonOperator(
     task_id='transform_visa',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_visa.py', "log":False,
+    params={"file" : os.path.join(os.getcwd(),'dags/transforms/transform_visa.py'), "log":False,
             "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
@@ -199,7 +213,7 @@ i94_data_S3Check = S3DataCheckOperator(
 transform_i94 = PythonOperator(
     task_id='transform_i94_meta_data',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_i94_meta_data.py', "log":False,
+    params={"file" : os.path.join(os.getcwd(),'dags/transforms/transform_i94_meta_data.py'), "log":False,
             "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
@@ -216,7 +230,7 @@ demographics_data_S3Check = S3DataCheckOperator(
 transform_demographics = PythonOperator(
     task_id='transform_demographics',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_demographics.py', "log":False,
+    params={"file" : os.path.join(os.getcwd(),'dags/transforms/transform_demographics.py'), "log":False,
             "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
@@ -233,19 +247,11 @@ codes_data_S3Check = S3DataCheckOperator(
 transform_codes = PythonOperator(
     task_id='transform_codes',
     python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/transform_codes.py', "log":False,
+    params={"file" : os.path.join(os.getcwd(),'dags/transforms/transform_codes.py'), "log":False,
             "args":["--input={}".format(PARAMS['RAW_DATA_BUCKET']),
                     "--output={}".format(PARAMS['FINAL_DATA_BUCKET'])]},
     dag=dag)
-
-data_quality = PythonOperator(
-    task_id='data_quality_check',
-    python_callable=submit_transform,
-    params={"file" : '/root/airflow/dags/transforms/data_lake_quality_check.py', "log":False,
-            "args":["--data={}".format(PARAMS['FINAL_DATA_BUCKET']),
-                    "--livy_session={}".format("Yes")]},
-    dag=dag)
-
+    
 start_operator >> [task_write_sas_codes_to_s3, create_cluster]
 [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion
 chain(wait_for_cluster_completion,
@@ -253,3 +259,7 @@ chain(wait_for_cluster_completion,
 [transform_visa, transform_demographics, transform_codes, transform_i94],data_quality)
 data_quality >> terminate_cluster
 terminate_cluster >> finish_operator
+'''
+start_operator >> [task_write_sas_codes_to_s3, create_cluster] >> wait_for_cluster_completion >> data_quality >> terminate_cluster >> finish_operator
+
+
