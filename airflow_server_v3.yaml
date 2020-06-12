@@ -60,7 +60,7 @@ Resources:
     Properties:
       KeyName: !Ref 'KeyName'
       SecurityGroups: [!Ref 'AirflowEC2SecurityGroup']
-      InstanceType: 'm4.2xlarge'
+      InstanceType: 'm4.xlarge'
       IamInstanceProfile:
         Ref: EC2InstanceProfile
       Tags:
@@ -85,31 +85,30 @@ Resources:
          # wget http://files.grouplens.org/datasets/movielens/ml-latest.zip && unzip ml-latest.zip
          # Upload the movielens dataset files to the S3 bucket
          # aws s3 cp ml-latest s3://${S3BucketName} --recursive
-         # install python3
-         sudo yum install python3 -y
-         sudo rm /usr/bin/python
-         sudo ln -s /etc/alternatives/python3 /usr/bin/python
          # Install git
          sudo yum install -y git
+         sudo yum install -y python36 python36-pip python36-devel
+         sudo rm /usr/bin/python
+         sudo rm /usr/bin/pip
+         sudo ln -s /etc/alternatives/python3 /usr/bin/python
+         sudo ln -s /etc/alternatives/pip-3.6 /usr/bin/pip
          # Clone the git repository
          git clone https://github.com/harisyammnv/DEND_Capstone_Airflow_EMR.git
-         python3 -m venv dend/env
-         pip install pip --upgrade
-         sudo pip install boto3
-         sudo pip install s3fs
-         sudo pip install beautifulsoup4
-         sudo pip install pandas
-         # Install airflow using pip
+         sudo /usr/bin/pip-3.6 install boto3
+         sudo /usr/bin/pip-3.6 install s3fs
+         sudo /usr/bin/pip-3.6 install beautifulsoup4
+         sudo /usr/bin/pip-3.6 install pandas
+         # Install airflow using /usr/bin/pip-3.6
          echo "Install Apache Airflow"
-         sudo SLUGIFY_USES_TEXT_UNIDECODE=yes pip install -U apache-airflow
+         sudo SLUGIFY_USES_TEXT_UNIDECODE=yes /usr/bin/pip-3.6 install -U apache-airflow
          # Encrypt connection passwords in metadata db
-         sudo pip install apache-airflow[crypto]
+         sudo /usr/bin/pip-3.6 install apache-airflow[crypto]
          # Postgres operators and hook, support as an Airflow backend
-         sudo pip install apache-airflow[postgres]
-         sudo -H pip install six==1.10.0
-         sudo pip install --upgrade six
-         sudo pip install markupsafe
-         sudo pip install --upgrade MarkupSafe
+         sudo /usr/bin/pip-3.6 install apache-airflow[postgres]
+         sudo -H /usr/bin/pip-3.6 install six==1.10.0
+         sudo /usr/bin/pip-3.6 install --upgrade six
+         sudo /usr/bin/pip-3.6 install markupsafe
+         sudo /usr/bin/pip-3.6 install --upgrade MarkupSafe
          echo 'export PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
          source /root/.bash_profile
          # Initialize Airflow
@@ -120,13 +119,14 @@ Resources:
          # Update the type of executor in the Airflow Config file
          sed -i '/executor = SequentialExecutor/s/^/#/g' ~/airflow/airflow.cfg
          sed -i '/executor = SequentialExecutor/ a executor = LocalExecutor' ~/airflow/airflow.cfg
+         sed -i '/load_examples = True/ a load_examples = False' ~/airflow/airflow.cfg
          airflow initdb
          # Move all the files to the ~/airflow directory. The Airflow config file is setup to hold all the DAG related files in the ~/airflow/ folder.
-         mv aws-concurrent-data-orchestration-pipeline-emr-livy/* ~/airflow/
+         mv DEND_Capstone_Airflow_EMR/* ~/airflow/
          # Delete the higher-level git repository directory
-         rm -rf aws-concurrent-data-orchestration-pipeline-emr-livy
+         rm -rf DEND_Capstone_Airflow_EMR
          # Replace the name of the S3 bucket in each of the .scala files. CHANGE THE HIGHLIGHTED PORTION BELOW TO THE NAME OF THE S3 BUCKET YOU CREATED IN STEP 1. The below command replaces the instance of the string ‘<s3-bucket>’ in each of the scripts to the name of the actual bucket.
-         sed -i 's/<s3-bucket>/${S3BucketName}/g' /root/airflow/dags/transform/*
+         # sed -i 's/<s3-bucket>/${S3BucketName}/g' /root/airflow/dags/transform/*
          # Run Airflow webserver
          airflow webserver
     Metadata:
