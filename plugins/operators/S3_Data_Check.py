@@ -5,11 +5,11 @@ import os
 
 
 class S3DataCheckOperator(BaseOperator):
-    template_fields = ['file_name']
+    template_fields = ['file_name','wild_card_extension','folder_name']
 
     @apply_defaults
     def __init__(self, aws_conn_id="", region=None,
-                 bucket=None, prefix=None, file_list=None, file_name=None,
+                 bucket=None, prefix=None, file_list=None, file_name=None,folder_name=None,
                  wild_card_extension=None, *args, **kwargs):
 
         super(S3DataCheckOperator, self).__init__(*args, **kwargs)
@@ -18,6 +18,7 @@ class S3DataCheckOperator(BaseOperator):
         self.bucket_name = bucket
         self.prefix = prefix
         self.file_list = file_list
+        self.folder_name = folder_name
         self.file_name = file_name
         self.wild_card_extension = wild_card_extension
 
@@ -25,6 +26,7 @@ class S3DataCheckOperator(BaseOperator):
 
         s3_hook = S3Hook(aws_conn_id=self.aws_conn_id)
         exists = s3_hook.check_for_bucket(self.bucket_name)
+        self.log.info("Extension provided - {}".format(self.wild_card_extension))
         if exists:
             self.log.info("S3 Bucket - {} exists".format(self.bucket_name))
         else:
@@ -47,11 +49,9 @@ class S3DataCheckOperator(BaseOperator):
                 self.log.info("File - {} exists in S3 Bucket - {}/{}".format(self.file_name, self.bucket_name, self.prefix))
             else:
                 raise FileNotFoundError("File - {} not found in S3 Bucket - {}".format(self.file_name, self.bucket_name))
-        else:
-            raise ValueError("File list has to be provided if the there is no wild card extension")
 
-        if self.wild_card_extension is not None:
-            full_key = os.path.join(self.prefix, self.wild_card_extension)
+        elif self.wild_card_extension is not None and self.file_list is None and self.folder_name is None:
+            full_key = os.path.join(self.prefix, '*.'+self.wild_card_extension)
             success = s3_hook.check_for_wildcard_key(wildcard_key=full_key,
                                                      bucket_name=self.bucket_name,
                                                      delimiter='/')
@@ -60,5 +60,27 @@ class S3DataCheckOperator(BaseOperator):
             else:
                 self.log.info("Invalid key: {}".format(full_key))
                 raise FileNotFoundError("No key named {}/{} ".format(self.bucket_name, full_key))
+
+        elif self.wild_card_extension is not None and self.file_list is not None and self.folder_name is None:
+            for fld in self.file_list:
+                fld_key = os.path.join(os.path.join(self.prefix, fld), '*.'+self.wild_card_extension)
+                fld_success = s3_hook.check_for_wildcard_key(wildcard_key=fld_key,
+                                                             bucket_name=self.bucket_name,delimiter='/')
+                if fld_success:
+                    self.log.info("Found the key: {}".format(fld_key))
+                else:
+                    self.log.info("Invalid key: {}".format(fld_key))
+                    raise FileNotFoundError("No key named {}/{} ".format(self.bucket_name, fld_key))
+        elif self.wild_card_extension is not None and self.folder_name is not None:
+            f_key = os.path.join(os.path.join(self.prefix, self.folder_name),'*.' + self.wild_card_extension)
+            fld_success = s3_hook.check_for_wildcard_key(wildcard_key=f_key,
+                                                         bucket_name=self.bucket_name, delimiter='/')
+            if fld_success:
+                self.log.info("Found the key: {}".format(f_key))
+            else:
+                self.log.info("Invalid key: {}".format(f_key))
+                raise FileNotFoundError("No key named {}/{} ".format(self.bucket_name, f_key))
+        else:
+            raise ValueError("File list has to be provided if the there is no wild card extension")
 
 

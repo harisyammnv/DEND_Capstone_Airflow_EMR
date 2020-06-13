@@ -36,6 +36,9 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'EC2_KEY_PAIR': config.get('AWS','AWS_EC2_KEY_PAIR')
           }
 
+os.environ['AWS_PROFILE'] = "Profile1"
+os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
+
 
 def sas_labels_to_csv(*args, **kwargs):
     s3 = s3fs.S3FileSystem(anon=False,
