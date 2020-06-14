@@ -4,7 +4,7 @@ class SqlQueries:
     """
 
     immigration = """
-                CREATE TABLE IF NOT EXISTS immigration (
+CREATE TABLE IF NOT EXISTS immigration (
                     cicid INT PRIMARY KEY,
                     entry_year INT,
                     entry_month INT,
@@ -21,9 +21,10 @@ class SqlQueries:
                     count INT,
                     visa_post VARCHAR,
                     matched_flag VARCHAR,
+                    birth_year INT,
                     gender VARCHAR,
                     ins_num VARCHAR,
-                    airline_abbr VARCHAR NOT NULL REFERENCES airlines(airline_iata_code),
+                    airline_abbr VARCHAR REFERENCES airlines(airline_iata_code),
                     admission_num FLOAT,
                     flight_no VARCHAR,
                     visa_type VARCHAR REFERENCES visa_type(visa_type)
@@ -46,6 +47,7 @@ class SqlQueries:
                     count INT,
                     visa_post VARCHAR,
                     matched_flag VARCHAR,
+                    birth_year INT,
                     gender VARCHAR,
                     ins_num VARCHAR,
                     airline_abbr VARCHAR,
@@ -132,7 +134,7 @@ class SqlQueries:
             num_of_veterans INT,
             foreign_born INT,
             avg_household_size FLOAT,
-            state_code VARCHAR NOT NULL REFERENCES i94addr(state_code),
+            state_code VARCHAR REFERENCES i94addr(state_code),
             predominant_race VARCHAR,
             count INT);"""
 

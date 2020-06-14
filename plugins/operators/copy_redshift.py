@@ -56,7 +56,7 @@ class CopyToRedshiftOperator(BaseOperator):
             for table, s3key in zip(self.table_list, self.s3_key_list):
                 if self.write_mode == "overwrite":
                     self.log.info("Cleaning data from Redshift table - {}".format(table))
-                    redshift.run("DROP TABLE IF EXISTS {}".format(table))
+                    redshift.run("TRUNCATE TABLE {}".format(table))
 
                 self.log.info("Copying data from AWS S3 to Redshift table - {}".format(table))
 
@@ -70,15 +70,17 @@ class CopyToRedshiftOperator(BaseOperator):
             s3_file = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
             if self.write_mode == "append":
                 self.log.info("Cleaning data from Staging Fact table - {}".format(self.table_list[0]))
-                redshift.run("DROP TABLE IF EXISTS {}".format("staging_"+self.table_list[0]))
+                redshift.run("TRUNCATE TABLE {}".format("staging_"+self.table_list[0]))
                 formatted_sql = CopyToRedshiftOperator.copy_parquet_cmd.format(
                     table_name='staging_'+self.table_list[0],
                     s3_path=s3_file, iam_role=self.iam_role)
                 redshift.run(formatted_sql)
-                redshift.run("""alter table {} append from {}}; """.format(self.table_list[0],"staging_"+self.table_list[0]))
+                redshift.run("""insert into {} (select * from {})""".format(self.table_list[0],"staging_"+self.table_list[0]))
+                redshift.run(
+                    """TRUNCATE TABLE {}""".format("staging_" + self.table_list[0]))
             else:
                 self.log.info("Cleaning data from Fact table - {}".format(self.table_list[0]))
-                redshift.run("DROP TABLE IF EXISTS {}".format(self.table_list[0]))
+                redshift.run("TRUNCATE TABLE {}".format(self.table_list[0]))
                 formatted_sql = CopyToRedshiftOperator.copy_parquet_cmd.format(
                     table_name=self.table_list[0],
                     s3_path=s3_file, iam_role=self.iam_role)
