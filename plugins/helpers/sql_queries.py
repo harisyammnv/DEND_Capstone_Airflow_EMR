@@ -17,9 +17,9 @@ CREATE TABLE IF NOT EXISTS immigration (
                     departure_date DATE,
                     departure_deadline DATE,
                     age INT,
-                    visa_reason_id INT REFERENCES i94visa(visa_code),
+                    visa_reason_id INT REFERENCES i94visa(visa_id),
                     count INT,
-                    visa_post VARCHAR,
+                    visa_post VARCHAR REFERENCES visa_ports(visa_post_code),
                     matched_flag VARCHAR,
                     birth_year INT,
                     gender VARCHAR,
@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS immigration (
                             elevation_ft FLOAT,
                             continent VARCHAR,
                             municipality VARCHAR,
+                            nearest_city VARCHAR REFERENCES us_cities_demographics(city)
                             iata_code VARCHAR,
                             airport_latitude FLOAT,
                             airport_longitude FLOAT,
@@ -80,7 +81,7 @@ CREATE TABLE IF NOT EXISTS immigration (
 
     i94visa = """
                CREATE TABLE IF NOT EXISTS i94visa (
-               visa_code INT PRIMARY KEY,
+               visa_id INT PRIMARY KEY,
                visa_purpose VARCHAR
                );"""
 
@@ -110,7 +111,7 @@ CREATE TABLE IF NOT EXISTS immigration (
     visa_port_of_issue = """
              CREATE TABLE IF NOT EXISTS visa_ports (
              port_of_issue VARCHAR,
-             visa_post_code VARCHAR
+             visa_post_code VARCHAR PRIMARY KEY
              );
              """
 
@@ -125,7 +126,7 @@ CREATE TABLE IF NOT EXISTS immigration (
 
     us_cities_demographics = """
             CREATE TABLE IF NOT EXISTS us_cities_demographics (
-            city VARCHAR,
+            city VARCHAR PRIMARY KEY,
             state VARCHAR,
             median_age FLOAT,
             male_population INT ,
@@ -138,18 +139,17 @@ CREATE TABLE IF NOT EXISTS immigration (
             predominant_race VARCHAR,
             count INT);"""
 
-    create_dim_tables = [airports, i94ports, i94visa, i94mode, i94addr, i94res, airlines, visa_port_of_issue, visa_type, us_cities_demographics, staging_immigration]
+    create_dim_tables = [i94ports, i94visa, i94mode, i94addr, i94res, airlines, visa_port_of_issue, visa_type, us_cities_demographics, airports,staging_immigration]
     create_fact_tables = [immigration]
-    tables = ["airport_codes", "i94ports", "i94visa",
-              "i94mode", "i94addr", "i94res", "airlines", "visa_ports","visa_type","us_cities_demographics"]
-    parquet_tables= ["lake/codes/airport_codes/",
-                     "lake/i94_meta_data/port_codes/",
+    tables = ["i94ports", "i94visa",
+              "i94mode", "i94addr", "i94res", "airlines", "visa_ports","visa_type","us_cities_demographics", "airport_codes"]
+    parquet_tables= ["lake/i94_meta_data/port_codes/",
                      "lake/i94_meta_data/visa/",
                      "lake/i94_meta_data/transportation/",
                      "lake/i94_meta_data/state_codes/",
                      "lake/i94_meta_data/country_codes/",
                      "lake/codes/airline_codes/",
-                     "lake/visa-issue-port/", "lake/visa-type/", "lake/demographics/"]
+                     "lake/visa-issue-port/", "lake/visa-type/", "lake/demographics/","lake/codes/airport_codes/"]
 
     count_check = """SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS non_empty FROM project.{}"""
 

@@ -6,12 +6,12 @@ import argparse
 
 def parse_latitude(x):
     y = x.strip().split(',')
-    return float(y[0])
+    return float(y[1])
 
 
 def parse_longitude(x):
     y = x.strip().split(',')
-    return float(y[1])
+    return float(y[0])
 
 
 def port_of_entry(x):
