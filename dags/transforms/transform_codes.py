@@ -61,6 +61,7 @@ us_airport = spark.read.format('csv').load('s3://{}/raw/codes/airport-codes.csv'
                         .withColumn("country", udf_parse_country_code("iso_region"))\
                         .withColumn("state_code", udf_parse_state_code("iso_region"))\
                         .withColumnRenamed("ident", "icao_code")\
+                        .withColumnRenamed("nearest_city", "nearest_city")\
                         .drop("coordinates", "gps_code", "local_code", "iso_region", "iso_country")
 
 us_airport.write.mode("overwrite").parquet("s3://{}/lake/codes/airport_codes/".format(output_bucket))

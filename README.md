@@ -48,7 +48,7 @@ To start creating the necessary resources the following steps are to be performe
 The following project architecture is used for developing the Data Lake in AWS
 ![Architechture](./AWS_Help/architechture.png)
 
-Using the data from the Data Lake in S3 which is considered as Staging Bucket here the following DWH schema is finalized:
+Using the data from the Data Lake in S3 which is considered as Staging Bucket here the following DWH Star schema is finalized:
 ![schema](./AWS_Help/data_model.png)
 ##### Setting up Airflow and AWS Connections
 - Run the `python create_resources.py` to create the Airflow EC2 instance
