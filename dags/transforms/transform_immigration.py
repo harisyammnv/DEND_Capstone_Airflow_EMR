@@ -8,6 +8,10 @@ from datetime import datetime, timedelta
 import sys
 import argparse
 
+"""
+This file is used for transforming the SAS immigration Data with the help of EMR add steps operator
+"""
+
 
 def create_spark_session(app_name='immigration_transform'):
     """Creates the spark session"""
@@ -29,6 +33,7 @@ def create_logger(spark):
 
 
 def to_datetime(x):
+    """ function to provide the datetime using sas delta"""
     try:
         start = datetime(1960, 1, 1)
         return start + timedelta(days=int(x))
@@ -37,6 +42,7 @@ def to_datetime(x):
 
 
 def to_datetime_frm_str(x):
+    """extract datetime from string"""
     try:
         return datetime.strptime(x, '%m%d%Y')
     except:
@@ -48,6 +54,7 @@ udf_to_datetime_sas = udf(lambda x: to_datetime(x), DateType())
 
 
 def create_cast_select_exprs(sas_cols, schema_cols):
+    """select expression filter for creating the immigration table columns"""
     if sas_cols != '':
         exprs = ["{} AS {}".format(dfc,sc) for dfc, sc in zip(sas_cols, schema_cols)]
     else:
@@ -102,6 +109,7 @@ schema_columns = ['cicid','entry_year','entry_month','country_id','res_id','port
                   'matched_flag','birth_year','gender','ins_num','airline_abbr','admission_num','flight_no','visa_type','month_year']
 
 immigration_df = immigration_df.selectExpr(create_cast_select_exprs(sas_columns,schema_columns))
-
+# Tranformed SAS data to Parquet file partitioned by month and year combined
+# SAS Data >> immigration fact DWH table
 immigration_df.write.partitionBy("month_year").mode("append").\
     parquet("s3://{}/lake/immigration/".format(output_bucket))

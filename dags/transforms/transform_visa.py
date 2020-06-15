@@ -18,10 +18,14 @@ else:
     output_bucket = 'test-capstone-final'
 
 if input_bucket != '' and output_bucket != '':
+    # transforming visa types
+    # visa-type >> visa_type
     visa = spark.read.format('csv').load('s3://{}/raw/us-visa/visa-type.csv'.format(input_bucket), header=True, inferSchema=True)
     visa_df = visa.withColumnRenamed("visa-type", "visa_type").withColumnRenamed("description", "visa_type_description")
     visa_df.write.mode("overwrite").parquet("s3://{}/lake/visa-type/".format(output_bucket))
 
+    # transforming visa issue ports
+    # visa issue posts >> visa_issue_post
     visa_port = spark.read.format('csv').load('s3://{}/raw/us-visa/visa-issuing-ports.csv'.format(input_bucket), header=True, inferSchema=True)
     visa_port_df = visa_port.selectExpr("Post as port_of_issue","Code as visa_post")
-    visa_port_df.write.mode("overwrite").parquet("s3://{}/lake/visa-issue-port/".format(output_bucket))
+    visa_port_df.write.mode("overwrite").parquet("s3://{}/lake/visa-issue-post/".format(output_bucket))

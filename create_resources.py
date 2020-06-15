@@ -22,7 +22,7 @@ PYTHON_APPS = config.get('S3','PYTHON_APPS')
 AWS_EMR = config.get('S3','AWS_EMR_SH')
 
 create_stack = True
-upload_files = False
+upload_files = True
 sas_data_upload = False
 
 if create_stack:

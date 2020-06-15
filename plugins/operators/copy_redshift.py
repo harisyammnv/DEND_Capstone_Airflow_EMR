@@ -6,18 +6,15 @@ from airflow.utils.decorators import apply_defaults
 
 class CopyToRedshiftOperator(BaseOperator):
     """
-    Transfer data from AWS S3 to staging tables in AWS Redshift
+    Transfer data from AWS S3 staging parquet files to AWS Redshift
 
     Parameters:
     redshift_conn_id: Connection Id of the Airflow connection to AWS Redshift database (Postgres Type)
-    table_name: name of the staging table in AWS Redshift
-    aws_credentials_id: Connection Id of the Airflow connection to AWS
-    s3_bucket: name of S3 bucket, e.g. "udacity-dend"
+    table_list: list of the DWH tables in AWS Redshift
+    s3_bucket: name of S3 bucket
     s3_key: name of S3 key. This field is templatable when context is enabled, e.g. "log_data/{execution_date.year}/{execution_date.month}/"
-    delimiter: csv field delimiter
-    ignore_headers: '0' or '1'
-    data_files_format: 'csv' or 'json'
-    jsonpaths: path to JSONpaths file
+    s3_key_list: when list of s3 keys are provided
+    write_mode: append or overwrite the DWH tables
 
     Returns: None
     """
