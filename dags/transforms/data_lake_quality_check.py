@@ -85,8 +85,3 @@ else:
     check_data_quality_livy("s3://{}/lake/i94_meta_data/visa/".format(out_bucket), 'visa', logger)
     check_data_quality_livy("s3://{}/lake/visa-issue-port/".format(out_bucket), 'visa-issue-port', logger)
     check_data_quality_livy("s3://{}/lake/visa-type/".format(out_bucket), 'visa-type', logger)
-
-
-
-
-
