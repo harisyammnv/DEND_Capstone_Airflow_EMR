@@ -31,7 +31,7 @@ credentials = aws_hook.get_credentials()
 
 # uncomment this when running this from a local Airflow instance
 #os.environ['AWS_PROFILE'] = "Profile1"
-#os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
+os.environ['AWS_DEFAULT_REGION'] = "us-west-2"
 
 
 PARAMS = {'aws_access_key': credentials.access_key,
@@ -106,8 +106,8 @@ JOB_FLOW = {
 default_args = {
     'owner': 'harisyam manda',
     'depends_on_past': False,
-    'start_date': datetime(2016, 4, 1),
-    'end_date': datetime(2016, 5, 1),
+    'start_date': datetime(2016, 1, 1),
+    'end_date': datetime(2016, 12, 1),
     'retries': 0,
     'email_on_failure': False,
     'email_on_retry': False,

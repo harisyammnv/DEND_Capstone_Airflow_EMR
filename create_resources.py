@@ -22,7 +22,7 @@ PYTHON_APPS = config.get('S3','PYTHON_APPS')
 AWS_EMR = config.get('S3','AWS_EMR_SH')
 
 create_stack = True
-upload_files = True
+upload_files = False
 sas_data_upload = False
 
 if create_stack:
@@ -68,4 +68,6 @@ if upload_files:
                           AWS_EMR + "bootstrap_action.sh")
     s3_client.upload_file("dags/transforms/transform_immigration.py", RAW_DATA_BUCKET,
                           PYTHON_APPS + "transform_immigration.py")
+    s3_client.upload_file("dags/transforms/data_lake_quality_check.py", RAW_DATA_BUCKET,
+                          PYTHON_APPS + "data_lake_quality_check.py")
     print('Upload Finished')
