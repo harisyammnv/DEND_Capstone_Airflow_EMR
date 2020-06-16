@@ -3,6 +3,10 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import udf
 import argparse
 
+"""
+This python function is used for transforming the demographics data
+"""
+
 
 def parse_state(x):
     return x.strip().split('-')[-1]
@@ -23,6 +27,8 @@ else:
 
 udf_parse_state = udf(lambda x: parse_state(x), StringType())
 
+# Transforming demographics data
+# demographics >> us_cities_demographics DWH table
 
 demographics = spark.read.format('csv').options(header='true', inferSchema='true',delimiter=';')\
     .load('s3://{}/raw/us-demographics/us-cities-demographics.csv'.format(input_bucket))\

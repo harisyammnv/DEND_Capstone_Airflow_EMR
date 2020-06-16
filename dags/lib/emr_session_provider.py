@@ -5,6 +5,16 @@ from datetime import datetime
 
 class EMRSessionProvider:
 
+    """
+    This class is responsible for providing Apache Livy Session with pyspark
+
+    Parameters:
+    master_dns: Master DNS for the EMR Cluster created from the EMR Cluster provider
+    session_url: will be extracted once the EMR cluster is up and running
+
+    Returns: None
+    """
+
     def __init__(self, master_dns):
         self.master_dns = master_dns
         self.session_url = None

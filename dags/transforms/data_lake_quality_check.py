@@ -8,8 +8,20 @@ from datetime import datetime, timedelta
 import sys
 import argparse
 
+"""
+This python file is used for performing data quality checks either using Apache LIVY REST endpoint or
+using the EMR Step operator
+"""
+
 
 def check_data_quality_livy(path, table, logger):
+    """
+    Check Data Quality for the parquet files in S3
+    :param path: S3 uri
+    :param table: S3 Key parquet file name
+    :param logger: spark logger
+    :return: None
+    """
     df = spark.read.parquet(path)
     if len(df.columns) > 0 and df.count() > 0:
         logger.warn("Data Quality check for - {} SUCCESS".format(table))
@@ -19,7 +31,7 @@ def check_data_quality_livy(path, table, logger):
 
 
 def create_spark_session(app_name='immigration_data_check'):
-    """Creates the spark session"""
+    """Creates the spark session when used in EMR Step operator"""
     spark = SparkSession\
     .builder\
     .config("spark.jars.packages", "saurfang:spark-sas7bdat:2.0.0-s_2.11,org.apache.hadoop:hadoop-aws:2.7.0") \
@@ -83,5 +95,5 @@ else:
     check_data_quality_livy("s3://{}/lake/i94_meta_data/state_codes/".format(out_bucket), 'state_codes', logger)
     check_data_quality_livy("s3://{}/lake/i94_meta_data/port_codes/".format(out_bucket), 'port_codes', logger)
     check_data_quality_livy("s3://{}/lake/i94_meta_data/visa/".format(out_bucket), 'visa', logger)
-    check_data_quality_livy("s3://{}/lake/visa-issue-port/".format(out_bucket), 'visa-issue-port', logger)
+    check_data_quality_livy("s3://{}/lake/visa-issue-post/".format(out_bucket), 'visa-issue-post', logger)
     check_data_quality_livy("s3://{}/lake/visa-type/".format(out_bucket), 'visa-type', logger)

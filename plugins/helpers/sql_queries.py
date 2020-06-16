@@ -108,8 +108,8 @@ CREATE TABLE IF NOT EXISTS immigration (
              visa_type_description VARCHAR
              );"""
 
-    visa_port_of_issue = """
-             CREATE TABLE IF NOT EXISTS visa_ports (
+    visa_post_of_issue = """
+             CREATE TABLE IF NOT EXISTS visa_issue_post (
              port_of_issue VARCHAR,
              visa_post_code VARCHAR PRIMARY KEY
              );
@@ -139,17 +139,17 @@ CREATE TABLE IF NOT EXISTS immigration (
             predominant_race VARCHAR,
             count INT);"""
 
-    create_dim_tables = [i94ports, i94visa, i94mode, i94addr, i94res, airlines, visa_port_of_issue, visa_type, us_cities_demographics, airports,staging_immigration]
+    create_dim_tables = [i94ports, i94visa, i94mode, i94addr, i94res, airlines, visa_post_of_issue, visa_type, us_cities_demographics, airports,staging_immigration]
     create_fact_tables = [immigration]
     tables = ["i94ports", "i94visa",
-              "i94mode", "i94addr", "i94res", "airlines", "visa_ports","visa_type","us_cities_demographics", "airport_codes"]
+              "i94mode", "i94addr", "i94res", "airlines", "visa_issue_post", "visa_type","us_cities_demographics", "airport_codes"]
     parquet_tables= ["lake/i94_meta_data/port_codes/",
                      "lake/i94_meta_data/visa/",
                      "lake/i94_meta_data/transportation/",
                      "lake/i94_meta_data/state_codes/",
                      "lake/i94_meta_data/country_codes/",
                      "lake/codes/airline_codes/",
-                     "lake/visa-issue-port/", "lake/visa-type/", "lake/demographics/","lake/codes/airport_codes/"]
+                     "lake/visa-issue-post/", "lake/visa-type/", "lake/demographics/","lake/codes/airport_codes/"]
 
     count_check = """SELECT CASE WHEN COUNT(*) > 1 THEN 1 ELSE 0 END AS non_empty FROM project.{}"""
 

@@ -17,6 +17,12 @@ from airflow.utils.helpers import chain
 import os
 from datetime import datetime
 
+"""
+This DAG is used for transforming the meta data extracted from the SAS labels and other data sources
+which will be used as dimension tables in DWH
+
+all the meta data is stored in the S3 Data Lake after transformation
+"""
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
 
@@ -93,7 +99,7 @@ def sas_labels_to_csv(*args, **kwargs):
 
 
 default_args = {
-    'owner': 'airflow',
+    'owner': 'harisyam manda',
     'depends_on_past': False,
     'start_date': datetime(2016, 1, 1),
     'retries': 0,
@@ -104,7 +110,7 @@ default_args = {
 
 dag = DAG('metadata_transform_dag',
           default_args=default_args,
-          description='Load and transform data in Redshift with Airflow',
+          description='Transform meta data with EMR and store in S3',
           schedule_interval=None,
         )
 

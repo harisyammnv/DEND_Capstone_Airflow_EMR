@@ -6,6 +6,11 @@ from helpers import SqlQueries
 from configparser import ConfigParser
 from airflow.contrib.hooks.aws_hook import AwsHook
 
+
+"""
+This DAG is used to create DWH in Redshift by using the Data from S3 Staging area (Data Lake)
+"""
+
 config = ConfigParser()
 config.read('./plugins/helpers/dwh_airflow.cfg')
 
@@ -22,10 +27,11 @@ PARAMS = {'aws_access_key': credentials.access_key,
           'DEMOGRAPHICS_DATA_LOC' : config.get('S3_STAGING','DEMOGRAPHICS'),
           'VISA_TYPE_LOC' : config.get('S3_STAGING','VISA_TYPES'),
           'REGION': config.get('AWS','REGION'),
+          'IAM_ROLE': config.get('AWS','IAM_ROLE')
           }
 
 default_args = {
-    'owner': 'udacity',
+    'owner': 'harisyam manda',
     'start_date': datetime(2016, 4, 1),
     'end_date': datetime(2016, 5, 1),
     'email_on_retry': False,
@@ -37,11 +43,10 @@ default_args = {
 }
 
 
-# dag is complete
 dag = DAG('capstone_DWH_dag',
           default_args=default_args,
-          description='Data Engineering Capstone DWH',
-          schedule_interval='@monthly',max_active_runs=1
+          description='Data Engineering Capstone S3 Staging -> Redshift DWH',
+          schedule_interval='@monthly', max_active_runs=1
           )
 
 start_operator = DummyOperator(task_id='begin_ETL',  dag=dag)
@@ -115,7 +120,7 @@ copy_dims_to_redshift = CopyToRedshiftOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table_list=SqlQueries.tables,
-    iam_role="arn:aws:iam::057666384869:role/myRedshiftRole",
+    iam_role= PARAMS['IAM_ROLE'],
     s3_bucket=PARAMS['FINAL_DATA_BUCKET'],
     s3_key_list=SqlQueries.parquet_tables,
     write_mode="overwrite",
@@ -132,7 +137,7 @@ copy_fact_to_redshift = CopyToRedshiftOperator(
     dag=dag,
     redshift_conn_id="redshift",
     table_list=["immigration"],
-    iam_role="arn:aws:iam::057666384869:role/myRedshiftRole",
+    iam_role=PARAMS['IAM_ROLE'],
     s3_bucket=PARAMS['FINAL_DATA_BUCKET'],
     s3_key="lake/immigration/month_year={{ execution_date.strftime('%b').lower() }}_{{ execution_date.strftime('%y') }}",
     write_mode="append",

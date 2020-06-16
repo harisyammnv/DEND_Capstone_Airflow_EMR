@@ -3,6 +3,10 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import udf
 import argparse
 
+"""
+This python file used for transforming the I94 SAS Labels data
+"""
+
 
 def parse_state_code(x):
     if x is not None and 'BPS' in x:
@@ -30,25 +34,34 @@ if args.output:
 else:
     output_bucket = 'test-capstone-final'
 
-
+# Transform state codes
+# state_codes >> i94addr
 udf_parse_state_code = udf(lambda x: parse_state_code(x), StringType())
 i94_addr = spark.read.format('csv').load('s3://{}/raw/i94_meta_data/i94addr.csv'.format(input_bucket), header=True, inferSchema=True)
 i94_addr_df = i94_addr.selectExpr("i94_state_code as state_code","i94_state_name as state_name")
 i94_addr_df.write.mode("overwrite").parquet("s3://{}/lake/i94_meta_data/state_codes/".format(output_bucket))
 
+# Transforming the nationality codes
+# country code >> i94res DWH Table
 i94_cit = spark.read.format('csv').load('s3://{}/raw/i94_meta_data/i94cit_i94res.csv'.format(input_bucket), header=True, inferSchema=True)
 i94_cit_df = i94_cit.selectExpr("i94_country_code as country_id","country_name as country")
 i94_cit_df.write.mode("overwrite").parquet("s3://{}/lake/i94_meta_data/country_codes/".format(output_bucket))
 
+# Transforming the transportation information
+# transportation >> i94mode DWH Table
 i94_mode = spark.read.format('csv').load('s3://{}/raw/i94_meta_data/i94mode.csv'.format(input_bucket), header=True, inferSchema=True)
 i94_mode_df = i94_mode.selectExpr("i94_mode_code as mode_id","i94_mode as transportation_mode")
 i94_mode_df.write.mode("overwrite").parquet("s3://{}/lake/i94_meta_data/transportation/".format(output_bucket))
 
+# Transforming the port codes
+# port codes >> i94ports DWH Table
 i94_port = spark.read.format('csv').load('s3://{}/raw/i94_meta_data/i94port_i94code.csv'.format(input_bucket), header=True, inferSchema=True)
 i94_port=i94_port.withColumn("port_state_cleaned", udf_parse_state_code("port_state"))
 i94_port_df = i94_port.selectExpr("i94_port_code as port_code","port_city as city","port_state_cleaned as state_code")
 i94_port_df.write.mode("overwrite").parquet("s3://{}/lake/i94_meta_data/port_codes/".format(output_bucket))
 
+# Transforming the visa labels
+# visa >> i94visa DWH Table
 i94_visa = spark.read.format('csv').load('s3://{}/raw/i94_meta_data/i94visa.csv'.format(input_bucket), header=True, inferSchema=True)
 i94_visa_df = i94_visa.selectExpr("i94_visa_code as visa_code","visa_purpose as visa_purpose")
 i94_visa_df.write.mode("overwrite").parquet("s3://{}/lake/i94_meta_data/visa/".format(output_bucket))

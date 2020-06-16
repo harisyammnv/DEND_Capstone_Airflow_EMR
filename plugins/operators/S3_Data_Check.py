@@ -5,6 +5,22 @@ import os
 
 
 class S3DataCheckOperator(BaseOperator):
+    """
+    AWS S3 Data check operator
+
+    Parameters:
+    aws_conn_id: Connection Id of the Airflow connection to AWS
+    region_name: region name of the S3 bucket
+    bucket_name: name of S3 bucket
+    prefix: name of S3 key or bucket prefix
+    file_list: files to check for in the bucket
+    folder_name: for specifying for folder name to search the files
+    file_name: if file name is specified
+    wild_card_extension: for parquet files
+
+    Returns: None
+    """
+
     template_fields = ['file_name','wild_card_extension','folder_name']
 
     @apply_defaults
