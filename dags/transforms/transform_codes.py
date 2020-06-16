@@ -58,7 +58,7 @@ nations_df = nations.selectExpr("Nationality as country","Code as country_abbr")
 nations_df.write.mode("overwrite").parquet("s3://{}/lake/codes/country_code/".format(output_bucket))
 
 # Transforming the visa port of entry
-# port-of-entry >> can be used for visa_ports DWH Table
+# port-of-entry >> can be used for visa_ports DWH Table but i have used the data from I94 SAS labels
 ports = spark.read.format('csv').load('s3://{}/raw/codes/port-of-entry-codes.csv'.format(input_bucket), header=True, inferSchema=True)\
     .withColumn("port_of_entry", udf_parse_port_of_entry("Location"))
 
@@ -87,5 +87,5 @@ airlines = spark.read.format('csv')\
     .withColumnRenamed("3 DIGIT CODE", "airline_3_digit_code")\
     .withColumnRenamed("ICAO CODE", "airline_icao_code")\
     .withColumnRenamed("COUNTRY / TERRITORY", "origin_country")
-
+airlines=airlines.drop_duplicates(['airline_iata_code'])
 airlines.write.mode("overwrite").parquet("s3://{}/lake/codes/airline_codes/".format(output_bucket))
