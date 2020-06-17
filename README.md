@@ -64,7 +64,18 @@ Using the data from the Data Lake in S3 which is considered as Staging Bucket he
 
 ##### Executing the DAGS
 - Use the Airflow UI to trigger dags
-- First trigger the DAG - `metadata_transform_dag`. This DAG will spin up `EMR` cluster
+- First trigger the DAG - `metadata_transform_dag`. This DAG will spin up `EMR` cluster and use `Apache Livy` REST interface to perform the necessary transformations and the data quality checks
+
+![meta_data_dag](./AWS_Help/metadata_dag.PNG)
+
+- Then execute the `immigration_transform_dag`. This DAG will also spin up `EMR` cluster but will use the `EMR add steps` method to basically add the transformation steps defined
+for obtaining transformed SAS immigration data. This DAG has a `monthly` schedule and can start at a particular point of time and finish at another
+![immigration_dag](./AWS_Help/immigration_data_transform.png)
+![tree_view](./AWS_Help/tree_view.png)
+
+- Once both the DAGS are completed then `S3 Staging area (Data Lake)` is ready. Then the `DWH`can be created in the Redshift
+- Execute the `capstone_DWH_dag` to fill the DWH with the tables and data
+![DWH_dag](./AWS_Help/dwh_dag.png)
 
 ##### Code References
 1) [Developing Cloud Formation Script](https://github.com/aws-samples/aws-concurrent-data-orchestration-pipeline-emr-livy.git)
