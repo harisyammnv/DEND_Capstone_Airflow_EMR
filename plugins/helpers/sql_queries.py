@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS immigration (
                     age INT,
                     visa_reason_id INT REFERENCES i94visa(visa_id),
                     count INT,
-                    visa_post VARCHAR REFERENCES visa_ports(visa_post_code),
+                    visa_post VARCHAR REFERENCES visa_issue_post(visa_post_code),
                     matched_flag VARCHAR,
                     birth_year INT,
                     gender VARCHAR,
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS immigration (
                             elevation_ft FLOAT,
                             continent VARCHAR,
                             municipality VARCHAR,
-                            nearest_city VARCHAR REFERENCES us_cities_demographics(city)
+                            nearest_city VARCHAR REFERENCES us_cities_demographics(city),
                             iata_code VARCHAR,
                             airport_latitude FLOAT,
                             airport_longitude FLOAT,

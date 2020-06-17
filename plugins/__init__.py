@@ -13,7 +13,8 @@ class CapstonePlugin(AirflowPlugin):
         operators.S3DataCheckOperator,
         operators.EmrAddStepsOperatorV2,
         operators.CreateTableOperator,
-        operators.CopyToRedshiftOperator
+        operators.CopyToRedshiftOperator,
+        operators.DWHDataQualityCheckOperator
     ]
     helpers = [
         helpers.SqlQueries,

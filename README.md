@@ -19,8 +19,20 @@ I have enriched the dataset using the following data sources to make the analysi
 - **US Visa Types**: This data is extracted from the US DHS and Wikipedia which would give information on various visa types offered by US [US Non-immigrant Visa Types](https://www.dhs.gov/immigration-statistics/nonimmigrant/NonimmigrantCOA) and [US Immigrant Visa Types](https://en.m.wikipedia.org/wiki/Visa_policy_of_the_United_States#Classes_of_visas)
 - **Airline Codes**: This data source consists of airlines IATA abbreviations and the country of origin [Airline Codes](https://www.iata.org/en/about/members/airline-list?page=30&search=&ordering=Alphabetical)
 
-#### Creating AWS CloudFormation Stack
+### Project Architecture
+The following project architecture is used for developing the Data Lake in AWS
 
+![Architechture](./AWS_Help/architechture.png)
+
+Using the data from the Data Lake in S3 which is considered as Staging Bucket here the following DWH Star schema is finalized:
+
+![schema](./AWS_Help/data_model.png)
+
+#### Deciding and Creating AWS CloudFormation Stack
+In this project I have decided to use AWS for  building up the Data Lake and DWH. I have used AWS because of the availabiliy of large number of options
+and also having elastic resources at scale for appropriate pricing, this made me to choose AWS.
+I have used `AWS EMR` for processing massive data and `AWS S3` for storing large amounts of data
+ 
 In order to run this project the following resources are needed:
 - `AWS EC2` - a `m4.xlarge` instance is needed for executing `Apache Airflow`
 - `Apache Airflow` - for orchestrating the ETL pipeline
@@ -40,21 +52,9 @@ To start creating the necessary resources the following steps are to be performe
 ![Permissions](./AWS_Help/permissions.PNG)
 4) Finish the `user` creation step and  download the `AWS KEY ID` and `AWS SECRET` into a `csv` file
 5) Create an `EC2 Key Pair` with name **`airflow_key_pair`** for accessing the EC2 instance for using `Airflow`
-6) After finishing the above steps. Fill in the `dwh.cfg` with your details (aws key and secret)
-7) Finally to create the cloud-formation stack use: `python create_resources.py`
 
-
-#### Project Architecture
-The following project architecture is used for developing the Data Lake in AWS
-
-![Architechture](./AWS_Help/architechture.png)
-
-Using the data from the Data Lake in S3 which is considered as Staging Bucket here the following DWH Star schema is finalized:
-
-![schema](./AWS_Help/data_model.png)
-
-##### Setting up Airflow and AWS Connections
-1) Create an S3 bucket for raw data and upload [airflow_server](./airflow_server_v3.yaml) file into the bucket
+#### Setting up Airflow and AWS Connections
+1) Create an S3 bucket for raw data and upload [airflow_server.yaml](./airflow_server_v3.yaml) file into the bucket
 2) Fill the [dwh.cfg](./dwh.cfg) file with your AWS details and also fill the [dwh_airflow.cfg]('./plugins/helpers/dwh_airflow.cfg')
 3) Run the `python create_resources.py` to create the Airflow EC2 instance
     - This script uploads raw data bucket into the bucket with name for eg. `dend-capstone-data` (created in step 1.)
@@ -138,6 +138,9 @@ for obtaining transformed SAS immigration data. This DAG has a `monthly` schedul
 
 ![DWH_dag](./AWS_Help/dwh_dag.png)
 
+#### Results from DWH
+
+
 #### Alternative Data Scenarios
 The project rubric asked how alternative scenarios may be tackled. A discussion of these is included below.
 
@@ -155,7 +158,7 @@ The project rubric asked how alternative scenarios may be tackled. A discussion 
 - I have already chosen Redshift as a DWH which have auto-scaling capabilities and good read performance. To manage efficient user access different `user` groups
 should be defined accordingly. This would restrict write access for the users who would need only read access and for `admin` users full access is provided
 
-#### Conclusion
+### Conclusion
 
 This capstone project was used to demonstrate the steps involved in building a Data Lake and DWH in AWS
 - Creating AWS resources using AWS Cloudformation - IaC
@@ -166,6 +169,6 @@ This capstone project was used to demonstrate the steps involved in building a D
 - Writing custom operators to perform tasks such as S3 Data checks, copying data from S3 to Redshift and EMR add steps
 - Transforming data from various sources into a star schema optimized for the immigration analysts use cases.
 
-##### Code References
+### Code References
 1) [Developing Cloud Formation Script](https://github.com/aws-samples/aws-concurrent-data-orchestration-pipeline-emr-livy.git)
 2) [Data pipeline Orchestration with Airflow, Spark and Livy](https://aws.amazon.com/blogs/big-data/build-a-concurrent-data-orchestration-pipeline-using-amazon-emr-and-apache-livy/)

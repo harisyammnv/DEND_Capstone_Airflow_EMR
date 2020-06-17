@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from datetime import datetime, timedelta
-from airflow.operators.capstone_plugin import (S3DataCheckOperator, CreateTableOperator, CopyToRedshiftOperator)
+from airflow.operators.capstone_plugin import (S3DataCheckOperator, CreateTableOperator, CopyToRedshiftOperator, DWHDataQualityCheckOperator)
 from helpers import SqlQueries
 from configparser import ConfigParser
 from airflow.contrib.hooks.aws_hook import AwsHook
@@ -143,9 +143,14 @@ copy_fact_to_redshift = CopyToRedshiftOperator(
     write_mode="append",
     provide_context=True,
 )
-    
+run_quality_checks = DWHDataQualityCheckOperator(
+    task_id='run_data_quality_checks',
+    dag=dag,
+    redshift_conn_id="redshift",
+    tables_list=SqlQueries.tables+['immigration']
+)
 start_operator >> [i94_meta_data_S3Check, i94_sas_data_S3Check,visa_type_S3Check,
                    visa_ports_S3Check, demographics_data_S3Check, codes_data_S3Check]
 [i94_meta_data_S3Check, i94_sas_data_S3Check,visa_type_S3Check,
  visa_ports_S3Check, demographics_data_S3Check, codes_data_S3Check] >> create_empty_dim_tables
-create_empty_dim_tables >> copy_dims_to_redshift >> create_empty_fct_table >> copy_fact_to_redshift >> finish_operator
+create_empty_dim_tables >> copy_dims_to_redshift >> create_empty_fct_table >> copy_fact_to_redshift >> run_quality_checks >> finish_operator
