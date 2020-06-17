@@ -125,7 +125,7 @@ This is S3 folder structure for both RAW and STAGING buckets
 - Use the Airflow UI to trigger dags
 - First trigger the DAG - `metadata_transform_dag`. This DAG will spin up `EMR` cluster and use `Apache Livy` REST interface to perform the necessary transformations and the data quality checks
 
-![meta_data_dag](./AWS_Help/metadata_dag.PNG)
+![meta_data_dag](./AWS_Help/metadata_dag.png)
 
 - Then execute the `immigration_transform_dag`. This DAG will also spin up `EMR` cluster but will use the `EMR add steps` method to basically add the transformation steps defined
 for obtaining transformed SAS immigration data. This DAG has a `monthly` schedule and can start at a particular point of time and finish at another
@@ -137,6 +137,7 @@ for obtaining transformed SAS immigration data. This DAG has a `monthly` schedul
 - Execute the `capstone_DWH_dag` to fill the DWH with the tables and data
 
 ![DWH_dag](./AWS_Help/dwh_dag.png)
+![DWH_dag](./AWS_Help/dwh_tree_view.png)
 
 #### Results from DWH
 
