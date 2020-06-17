@@ -119,7 +119,7 @@ Resources:
          # Update the type of executor in the Airflow Config file
          sed -i '/executor = SequentialExecutor/s/^/#/g' ~/airflow/airflow.cfg
          sed -i '/executor = SequentialExecutor/ a executor = LocalExecutor' ~/airflow/airflow.cfg
-         sed -i '/load_examples = True/ a load_examples = False' ~/airflow/airflow.cfg
+         sed -i -e 's/load_examples = True/load_examples = False/g' airflow.cfg
          airflow initdb
          # Move all the files to the ~/airflow directory. The Airflow config file is setup to hold all the DAG related files in the ~/airflow/ folder.
          mv DEND_Capstone_Airflow_EMR/* ~/airflow/
