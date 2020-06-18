@@ -142,6 +142,43 @@ for obtaining transformed SAS immigration data. This DAG has a `monthly` schedul
 
 #### Results from DWH
 
+Using the Redshift DWH we can check the Stats from the SAS data as follows:
+
+- The following plot shows the number of visitors to California in 2016 by various transport modes
+```
+SELECT a.entry_month,b.transportation_mode,COUNT(cicid) AS count
+FROM immigration a INNER JOIN i94mode b ON a.mode_id=b.mode_id
+WHERE a.state_code = 'CA'
+GROUP BY a.entry_month, b.transportation_mode, a.entry_month
+ORDER BY COUNT(cicid) DESC;
+```
+
+![CA_plot](./AWS_Help/num_immigrants.png)
+
+- All the airports around the world can be viewed using geopandas as follows
+
+![airports](./AWS_Help/airports_world.png)
+
+- Top 10 port of entries in the US used by immigrants entering into the US
+
+```
+SELECT TOP 10 b.port_city, b.state_code_or_country, COUNT(cicid) AS count
+FROM immigration a INNER JOIN i94ports b ON a.port_id=b.port_code
+GROUP BY b.port_city, b.state_code_or_country
+ORDER BY COUNT(cicid) DESC;
+```
+
+![entry_ports](./AWS_Help/entry_ports.png)
+
+- Visa type distribution based on gender in 2016
+```
+SELECT im.gender, im.visa_type, count(im.cicid)
+FROM immigration as im
+JOIN visa_type ON im.visa_type = visa_type.visa_type
+GROUP BY im.gender, im.visa_type;
+```
+![visa_type_gender](./AWS_Help/visa_type_gender_dist.png)
+
 
 #### Alternative Data Scenarios
 The project rubric asked how alternative scenarios may be tackled. A discussion of these is included below.
