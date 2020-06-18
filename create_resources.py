@@ -21,9 +21,9 @@ DEMOGRAPHICS_DATA_LOC = config.get('S3','DEMOGRAPHICS_DATA')
 PYTHON_APPS = config.get('S3','PYTHON_APPS')
 AWS_EMR = config.get('S3','AWS_EMR_SH')
 
-create_stack = True
-upload_files = False
-sas_data_upload = False
+create_stack = config.get('CF','CREATE_STACK')
+upload_files = config.get('CF','UPLOAD_DATA')
+sas_data_upload = config.get('CF','UPLOAD_SAS')
 
 if create_stack:
     aws_stack_provider = AWSCloudFormationStackProvider(aws_key=AWS_ACCESS_KEY, aws_secret=AWS_SECRET,
