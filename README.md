@@ -72,6 +72,37 @@ To start creating the necessary resources the following steps are to be performe
 7) Fill in the new `redshift` connection details as well:
 ![AWS_redshift](./AWS_Help/redshift_conn.png)
 
+
+#### Data Paths
+The following files are used in the data pipeline:
+
+| Filename | Location | Purpose | Execution Platform |
+| -------- | -------- | ------- | ------------------ |
+| create_resources.py | Udacity | uploads data to S3 | Udacity|
+| extras/data_scraper.py | Udacity | scarpes data from internet to add additional data | Udacity|
+| extras/nearest_city.py | Udacity | adds nearest city to the airports csv file | Udacity|
+| dags/lib/emr_cluster_provider.py | AWS EC2 | Provisions EMR cluster | AWS EC2 |
+| dags/lib/emr_session_provider.py | AWS EC2 | Provides Livy REST Session | AWS EMR |
+| dags/transforms/transforms_codes.py |  AWS EC2 | Transforms all the csv files with `-codes` suffix | AWS EMR + Livy Session |
+| dags/transforms/tranforms_demographics.py | AWS EC2 | Transforms demographics file | AWS EMR + Livy Session |
+| dags/transforms/transforms_i94_meta_data.py |  AWS EC2 | Transforms all the meta data extracted from SAS label file | AWS EMR + Livy Session |
+| dags/transforms/tranforms_immigration.py | AWS EC2 | Transforms immigration SAS data | AWS EMR |
+| dags/transforms/tranforms_visa.py | AWS EC2 | Transforms csv files related to visa | AWS EMR + Livy Session |
+| dags/transforms/data_lake_quality_check.py | AWS EC2 | Performs Data Lake Quality check | AWS EMR + Livy Session |
+| dags/capstone_meta_data_dag.py | AWS EC2 | ELT pipeline for transforming CSV meta data to S3 parquet format | Airflow |
+| dags/capstone_immigration_dag.py | AWS EC2 | ELT pipeline for transforming SAS immigration to S3 parquet format with partition over month+year | Airflow |
+| dags/capstone_DWH_dag.py | AWS EC2 | ETL pipeline for building DWH in Redshift with Staging Data in S3 | Airflow |
+| emr_bootstrap/boostrap_action.sh | AWS S3 | copies `transform_immigration.py` and `data_lake_quality_check.py` to EMR when cluster bootstraps | AWS EMR |
+| plugins/helpers/dwh_airflow.cfg | AWS EC2 | Used by airflow to get all the resource paths | Airflow |
+| plugins/helpers/sql_queries.py | AWS EC2 | SQL queries for DWH | Airflow |
+| plugins/operators/copy_redshift.py | AWS EC2 | Copies Parquet data from S3 staging to AWS Redshift | Airflow |
+| plugins/operators/create_table.py | AWS EC2 | Creates empty tables in AWS Redshift | Airflow |
+| plugins/operators/DWH_data_quality.py | AWS EC2 | Checks data quality in all the tables in AWS Redshift | Airflow |
+| plugins/operators/emr_add_steps.py | AWS EC2 | Adds emr steps to execute transformations | Airflow |
+| plugins/operators/S3_Data_check.py | AWS EC2 | Checks if Data in present in S3 | Airflow |
+
+
+
 ##### S3 folder Structure
 This is S3 folder structure for both RAW and STAGING buckets
 ```
