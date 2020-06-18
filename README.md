@@ -55,7 +55,7 @@ To start creating the necessary resources the following steps are to be performe
 
 #### Setting up Airflow and AWS Connections
 1) Create an S3 bucket for raw data and upload [airflow_server.yaml](./airflow_server_v3.yaml) file into the bucket
-2) Fill the [dwh.cfg](./dwh.cfg) file with your AWS details and also fill the [dwh_airflow.cfg](./plugins/helpers/dwh_airflow.cfg'
+2) Fill the [dwh.cfg](./dwh.cfg) file with your AWS details and also fill the [dwh_airflow.cfg](./plugins/helpers/dwh_airflow.cfg)
 3) Run the `python create_resources.py` to create the Airflow EC2 instance
     - This script uploads raw data bucket into the bucket with name for eg. `dend-capstone-data` (created in step 1.)
     - Python scripts are also uploaded into the raw data bucket. (Look at the S3 folder structure below)
