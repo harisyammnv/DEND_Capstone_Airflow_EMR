@@ -43,7 +43,7 @@ In order to run this project the following resources are needed:
 To make the provisioning of the above resources easier, I have used the `AWS Cloudformation` to create
 the stack needed for running this project.
 
-The resources needed are already configured in the [airflow_server](./airflow_server_v3.yaml) yaml file
+The resources needed are already configured in the [airflow_server.yaml](./airflow_server_v3.yaml) yaml file
 
 To start creating the necessary resources the following steps are to be performed:
 1) Create an `AWS` account and provide necessary billing information (if needed)
@@ -135,6 +135,7 @@ for obtaining transformed SAS immigration data. This DAG has a `monthly` schedul
 
 - Once both the DAGS are completed then `S3 Staging area (Data Lake)` is ready. Then the `DWH`can be created in the Redshift
 - Execute the `capstone_DWH_dag` to fill the DWH with the tables and data
+- The **Data Dictionary** for the DWH tables can be found [here](./Data_Dictionary.md)
 
 ![DWH_dag](./AWS_Help/dwh_dag.png)
 ![DWH_dag](./AWS_Help/dwh_tree_view.png)
